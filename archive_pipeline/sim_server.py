@@ -11,7 +11,9 @@ every request, and provides:
   a 302 to a robots-disallowed path, and 404/503 behaviours per notice;
 * a public-edition variant served when ``?edition=public`` is requested, which
   is a *different business document* at the same path (business parameters must
-  not be merged);
+  not be merged); the scenario may also give it the same published notice
+  number, which the archive must still keep as a separate variant identity;
+  an edition-level ``available: false`` makes only that variant answer 404;
 * ``/debug/requests`` listing everything the server actually served, so the run
   report can be cross-checked against the crawler's own request manifest.
 """
@@ -317,6 +319,13 @@ class SiteServer:
         edition = None
         if notice.public_edition and query.get("edition", [""])[0] == "public":
             edition = notice.public_edition
+
+        # An edition-level availability override lets one business variant at
+        # the same path return 404 while the other variant stays healthy.
+        if edition and edition.get("available", True) is False:
+            self._record(handler, 404)
+            self._send(handler, 404, b"<h1>edition withdrawn</h1>")
+            return
 
         fields = {
             "key": edition.get("key", notice.key) if edition else notice.key,

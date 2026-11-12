@@ -1,41 +1,35 @@
 """Scan engine: directory walk, conditional detail fetches, versioning, retraction.
 
-Definitions (repeated in every scan report)
+Identity (see :mod:`archive_pipeline.identity`)
+-----------------------------------------------
+The page-published notice number (``notice_key`` / legacy ``document_key``) is
+retained on every record but is **not** the archive identity.  A business
+variant's stable ``archive_id`` is derived from its normalized final URL, so:
 
-*round / scan*
-    One traversal of a source from its configured entry point, ending with an
-    explicit ``complete`` verdict.  Only a complete scan is a round for
-    retraction purposes.
+* variants at different business query parameters get independent version
+  chains even when their pages print the same notice number;
+* tracking parameters and fragments never create a document;
+* a real HTTP redirect merges the alias URL into the target identity;
+* a declared ``rel=canonical`` is recorded only and never merges variants.
 
-*business fields*
-    ``title``, ``issued_on``, ``body`` in normal form.  ``business_digest`` is
-    SHA-256 over them.  A version is appended iff the digest differs from the
-    last stored version (or no version exists).  Markup outside the extracted
-    content (header, nav, footer, attributes) cannot reach the adapter, so a
-    navigation/footer-only edit changes raw bytes and the raw digest but never
-    the business digest, hence never creates a version.
+The same identity resolution feeds ingestion, version lookup, conditional
+(304) validator reuse and the retraction post-pass — there is no code path
+that still keys off the notice number alone.
 
 *304*
-    Treated as "not modified": the stored version stays current, the 304 body
-    (usually empty) is archived byte-for-byte under its own digest, and no
-    version is written.  304 is never interpreted as an empty document.  A 304
-    for a URL with no archived version is a protocol error: validators are
-    cleared so the next fetch is unconditional, and the scan is incomplete.
+    Treated as "not modified": the stored version of *this* identity stays
+    current, the 304 body (usually empty) is archived byte-for-byte under its
+    own digest, and no version is written.  A 304 for a URL whose identity has
+    no archived version is a protocol error: validators are cleared so the
+    next fetch is unconditional, and the scan is incomplete.
 
 *404 / retraction*
-    A 404 is recorded in ``scan_misses`` and the document becomes
-    ``temporarily_unreachable``.  After the scan's completeness verdict is final,
-    a post-pass certifies ``with_retracted`` (撤稿) only when the **two most
-    recent scans of the source are both complete and both recorded a 404 for the
-    document**.  503s, network errors, parse failures, robots blocks, pagination
-    loops and interrupted scans all make a scan incomplete and contribute no
-    evidence.  Retraction is a state, not a deletion: versions remain readable.
-
-*pagination loop*
-    Directory URLs are visited per scan by normalized identity.  A ``rel=next``
-    that resolves to an already-visited directory URL is an observed cycle: the
-    URL is not refetched, the scan stops and is reported incomplete /
-    ``paging_loop``.
+    A 404 is recorded in ``scan_misses`` against the URL's own identity and
+    the document becomes ``temporarily_unreachable``.  After the scan's
+    completeness verdict is final, a post-pass certifies
+    ``with_retracted`` only when the two most recent complete scans both
+    recorded a 404 for that identity.  One variant's 404 streak can never
+    retract a sibling variant sharing the same notice number.
 """
 
 from __future__ import annotations
@@ -58,6 +52,7 @@ from .fetcher import (
     body_digest,
 )
 from .htmlparse import ADAPTERS, AdapterError, parse_html
+from .identity import resolve_archive_id
 from .robots import RobotsPolicy
 from .store import Store
 from .urlnorm import InvalidURL, normalize_url, split_origin
@@ -133,6 +128,13 @@ class ScanEngine:
         self.store = store
         self.archive = archive
         self.progress = progress or (lambda _msg: None)
+
+    def _alias_map(self, source: SourceConfig) -> dict[str, str]:
+        return self.store.alias_map(source.source_id)
+
+    def _identity_for(self, source: SourceConfig, url_key: str,
+                      aliases: dict[str, str]) -> tuple[str, str]:
+        return resolve_archive_id(source.source_id, url_key, aliases)
 
     # ==================================================================
     def scan(self, source: SourceConfig, *, interrupt_after: int | None = None,
@@ -442,13 +444,14 @@ class ScanEngine:
         A crawler requests what the directory actually linked to (the short
         alias on site B), letting the redirect resolve during the fetch; this
         keeps the request manifest truthful and the validators attached to the
-        URL that was requested.  Distinct URLs that are known to alias the same
-        target are deduplicated so the target is not fetched twice in one scan.
+        URL that was requested.  Distinct URLs that are *known* to alias the
+        same real-redirect target are deduplicated so the target is not fetched
+        twice in one scan.  URLs differing only by tracking params already
+        normalize to one key; URLs differing by business params never do.
         """
         ordered: list[str] = []
         seen_targets: set[str] = set()
-        aliases = {row["from_key"]: row["to_key"]
-                   for row in self.store.aliases(source.source_id)}
+        aliases = self.store.alias_map(source.source_id)
         # Rows still pending at the start of this scan were left behind by an
         # earlier interrupted scan (a normal scan leaves no pending rows except
         # retriable ones such as a blocked redirect).  Whether or not the
@@ -491,7 +494,8 @@ class ScanEngine:
             "outcome": "unknown",
             "http_status": None,
             "raw_digest": None,
-            "document_key": None,
+            "notice_key": None,
+            "archive_id": None,
             "version_created": False,
             "version_id": None,
             "version_no": 0,
@@ -511,6 +515,12 @@ class ScanEngine:
             row = self.store.discover_url(source.source_id, url_key, scan_id, now_iso())
         etag = row["etag"] or None
         last_modified = row["last_modified"] or None
+        # Identity is resolved from real-redirect aliases only.  A declared
+        # canonical never participates.
+        aliases = self._alias_map(source)
+        archive_id, final_url_key = self._identity_for(source, url_key, aliases)
+        item["archive_id"] = archive_id
+        item["final_url_key"] = final_url_key
 
         try:
             fetched = fetcher.fetch(url_key, kind="detail", etag=etag,
@@ -564,87 +574,98 @@ class ScanEngine:
             self._record_redirects(source, fetched.redirect_chain, scan_id, result)
             final_key = normalize_url(fetched.final_url, source.tracking_params)
             item["redirected_to"] = final_key
+            # Re-resolve identity now that the redirect is recorded: the alias
+            # URL belongs to the target document, no new document is created.
+            aliases = self._alias_map(source)
+            archive_id, final_url_key = self._identity_for(source, url_key, aliases)
+            item["archive_id"] = archive_id
+            item["final_url_key"] = final_url_key
             if final_key != url_key:
-                self.store.record_alias(source.source_id, url_key, final_key, scan_id)
                 item["requests_alias"] = True
 
         # ---- 304 ----------------------------------------------------
         if fetched.status == 304:
-            # Look up by document key first (an alias URL may differ from the
-            # URL that produced the version), then by URL as a fallback.
-            doc_key = (row["document_key"] if row else None) or \
-                self.store.document_for_url(source.source_id, url_key)
-            prior = (self.store.last_version(source.source_id, doc_key)
-                     if doc_key else None) or \
-                self.store.last_version_of_url(source.source_id, url_key)
+            prior = self.store.last_version(source.source_id, archive_id)
+            if prior is None:
+                # Fall back to a version observed at this exact URL, but never
+                # borrow another variant's version via the notice number.
+                prior = self.store.last_version_of_url(source.source_id, url_key)
             if prior is None:
                 item["outcome"] = "304_without_version"
-                item["note"] = ("304 with no locally archived version; validators "
-                                "cleared so the next fetch is unconditional")
+                item["note"] = ("304 with no locally archived version for this "
+                                "identity; validators cleared so the next fetch "
+                                "is unconditional")
                 result.complete = False
                 result.stop_reason = "detail_304_without_version"
                 result.notes.append(f"{url_key}: {item['note']}")
                 self.store.set_url_state(
                     source.source_id, url_key, state="processed",
                     updated_at=now_iso(), etag="", last_modified="",
-                    last_status=304, missing_streak=0)
+                    last_status=304, missing_streak=0,
+                    archive_id=archive_id, final_url_key=final_url_key)
                 return self._persist_item(source, scan_id, item)
             item["outcome"] = "not_modified"
-            item["document_key"] = prior["document_key"]
+            item["notice_key"] = prior["notice_key"]
+            item["document_key"] = prior["notice_key"]
             item["version_no"] = prior["version_no"]
             item["content_digest"] = prior["content_digest"]
             item["version_reason"] = "http_304_reused_version"
             item["previous_raw_digest"] = prior["raw_digest"]
             item["note"] = (
-                f"HTTP 304: reused archived version {prior['version_no']}; "
-                f"no version written; 304 body ({len(fetched.raw)} bytes, "
-                f"sha256 {digest[:12]}…) archived")
+                f"HTTP 304: reused archived version {prior['version_no']} of "
+                f"{archive_id}; no version written; 304 body "
+                f"({len(fetched.raw)} bytes, sha256 {digest[:12]}…) archived")
             for key in self._storage_keys(url_key, item):
                 self.store.set_url_state(
                     source.source_id, key, state="processed",
                     updated_at=now_iso(), last_status=304, missing_streak=0,
-                    document_key=prior["document_key"],
+                    notice_key=prior["notice_key"],
+                    archive_id=archive_id, final_url_key=final_url_key,
                     last_version=prior["version_no"])
             self.store.clear_missing(source.source_id, url_key, updated_at=now_iso())
-            doc = self.store.get_document(source.source_id, prior["document_key"])
-            if doc and doc["state"] in {"with_retracted", "temporarily_unreachable"}:
+            identity = self.store.get_identity(source.source_id, archive_id)
+            if identity and identity["state"] in {"with_retracted",
+                                                  "temporarily_unreachable"}:
                 # A 304 is a positive existence signal: the resource is still
                 # served, it just has not changed.  Reactivate.
-                self.store.mark_document_active(source.source_id,
-                                                prior["document_key"], url_key)
-                item["note"] += f"; document reactivated (was {doc['state']})"
+                self.store.mark_identity_active(
+                    source.source_id, archive_id, url_key,
+                    notice_key=prior["notice_key"])
+                item["note"] += f"; document reactivated (was {identity['state']})"
             item["raw_bytes_changed"] = False
             return self._persist_item(source, scan_id, item)
 
         # ---- 404 / 410 ---------------------------------------------
         if fetched.status in {404, 410}:
-            document_key = (row["document_key"] if row else None) or \
-                self.store.document_for_url(source.source_id, url_key)
-            if not document_key:
-                # Never successfully parsed: evidence is kept at URL level so the
-                # >2-complete-rounds rule still applies to it, while the absence
-                # of archived versions is reported explicitly.
-                document_key = f"url:{url_key}"
-                self.store.ensure_document(source.source_id, document_key)
-            self.store.record_miss(scan_id, source.source_id, document_key,
-                                   url_key, fetched.status)
+            notice_key = (row["notice_key"] if row else None)
+            if not notice_key:
+                version = self.store.last_version(source.source_id, archive_id)
+                notice_key = version["notice_key"] if version else None
+            self.store.ensure_identity(source.source_id, archive_id,
+                                       notice_key=notice_key, created_at=now_iso())
+            self.store.record_miss(scan_id, source.source_id, archive_id,
+                                   url_key, fetched.status, notice_key)
             streak = self.store.bump_missing(source.source_id, url_key,
                                              http_status=fetched.status,
                                              updated_at=now_iso())
             item["outcome"] = "not_found"
-            item["document_key"] = document_key
+            item["notice_key"] = notice_key
+            item["document_key"] = notice_key
             item["note"] = (
                 f"HTTP {fetched.status}; URL miss counter {streak}. "
                 "Remains temporarily_unreachable until two consecutive complete "
                 "scans observe 404")
-            doc = self.store.get_document(source.source_id, document_key)
-            if not doc or doc["state"] != "with_retracted":
-                self.store.mark_document_missing(
-                    source.source_id, document_key,
+            identity = self.store.get_identity(source.source_id, archive_id)
+            if not identity or identity["state"] != "with_retracted":
+                self.store.mark_identity_missing(
+                    source.source_id, archive_id,
                     missing_streak=streak, last_url_key=url_key)
             self.store.set_url_state(source.source_id, url_key, state="processed",
                                      updated_at=now_iso(), last_status=fetched.status,
-                                     missing_streak=streak)
+                                     missing_streak=streak,
+                                     archive_id=archive_id,
+                                     final_url_key=final_url_key,
+                                     notice_key=notice_key)
             return self._persist_item(source, scan_id, item)
 
         if fetched.status != 200:
@@ -659,7 +680,9 @@ class ScanEngine:
                 f"{url_key}: HTTP {fetched.status}; scan will be marked incomplete "
                 "(503/transient errors do not advance the withdrawal counter)")
             self.store.set_url_state(source.source_id, url_key, state="processed",
-                                     updated_at=now_iso(), last_status=fetched.status)
+                                     updated_at=now_iso(), last_status=fetched.status,
+                                     archive_id=archive_id,
+                                     final_url_key=final_url_key)
             return self._persist_item(source, scan_id, item)
 
         # ---- 200 ----------------------------------------------------
@@ -673,7 +696,9 @@ class ScanEngine:
             result.stop_reason = "detail_parse_error"
             result.notes.append(f"{url_key}: {exc}")
             self.store.set_url_state(source.source_id, url_key, state="processed",
-                                     updated_at=now_iso(), last_status=200)
+                                     updated_at=now_iso(), last_status=200,
+                                     archive_id=archive_id,
+                                     final_url_key=final_url_key)
             return self._persist_item(source, scan_id, item)
 
         if not record.document_key:
@@ -682,11 +707,14 @@ class ScanEngine:
             result.complete = False
             result.stop_reason = "detail_missing_document_key"
             self.store.set_url_state(source.source_id, url_key, state="processed",
-                                     updated_at=now_iso(), last_status=200)
+                                     updated_at=now_iso(), last_status=200,
+                                     archive_id=archive_id,
+                                     final_url_key=final_url_key)
             return self._persist_item(source, scan_id, item)
 
-        key = record.document_key
-        item["document_key"] = key
+        notice_key = record.document_key
+        item["notice_key"] = notice_key
+        item["document_key"] = notice_key
         item["title"] = record.title
         item["issued_on"] = record.issued_on
         item["body_paragraphs"] = record.body.split("\n\n") if record.body else []
@@ -708,23 +736,25 @@ class ScanEngine:
                     item["canonical_blocked"] = canonical_abs
                     result.notes.append(
                         f"{url_key}: canonical {canonical_abs} is off-origin; "
-                        "recorded but never requested")
+                        "recorded but never requested and never used for identity")
             except InvalidURL as exc:
                 item["canonical_blocked"] = f"invalid: {exc}"
                 result.notes.append(f"{url_key}: invalid canonical: {exc}")
 
-        previous = self.store.last_version(source.source_id, key)
+        self.store.ensure_identity(source.source_id, archive_id,
+                                   notice_key=notice_key, created_at=now_iso())
+        previous = self.store.last_version(source.source_id, archive_id)
         if previous is None:
-            self.store.ensure_document(source.source_id, key)
             version_id = self.store.add_version(
-                source_id=source.source_id, document_key=key, url_key=url_key,
+                source_id=source.source_id, archive_id=archive_id,
+                notice_key=notice_key, url_key=url_key,
                 version_no=1, title=record.title, issued_on=record.issued_on,
                 body=record.body, canonical_url=item.get("canonical_url"),
                 raw_digest=digest, content_digest=c_digest, business_digest=b_digest,
                 scan_id=scan_id, created_at=now_iso())
             item.update(version_created=True, version_id=version_id, version_no=1,
                         version_reason="first_observation",
-                        note="first version for this document")
+                        note="first version for this variant identity")
         elif b_digest != previous["business_digest"]:
             changed = [name for name, old, new in (
                 ("title", previous["title"], record.title),
@@ -733,7 +763,8 @@ class ScanEngine:
             ) if old != new]
             version_no = int(previous["version_no"]) + 1
             version_id = self.store.add_version(
-                source_id=source.source_id, document_key=key, url_key=url_key,
+                source_id=source.source_id, archive_id=archive_id,
+                notice_key=notice_key, url_key=url_key,
                 version_no=version_no, title=record.title,
                 issued_on=record.issued_on, body=record.body,
                 canonical_url=item.get("canonical_url"),
@@ -747,9 +778,10 @@ class ScanEngine:
                         previous_raw_digest=previous["raw_digest"],
                         note=(f"business fields changed ({','.join(changed)}) -> "
                               f"version {version_no}"))
-            doc = self.store.get_document(source.source_id, key)
-            if doc and doc["state"] == "with_retracted":
-                self.store.mark_document_active(source.source_id, key, url_key)
+            identity = self.store.get_identity(source.source_id, archive_id)
+            if identity and identity["state"] == "with_retracted":
+                self.store.mark_identity_active(source.source_id, archive_id, url_key,
+                                                notice_key=notice_key)
                 item["note"] += "; previously retracted document reactivated"
         else:
             item.update(version_created=False, version_no=previous["version_no"],
@@ -767,29 +799,28 @@ class ScanEngine:
                     f"({digest[:12]}… vs {previous['raw_digest'][:12]}…) — "
                     "navigation/footer/markup edit, no version created")
 
-        self.store.set_url_state(
-            source.source_id, url_key, state="processed", updated_at=now_iso(),
-            etag=fetched.headers.get("etag") or "",
-            last_modified=fetched.headers.get("last-modified") or "",
-            content_digest=c_digest,
-            canonical_url=item.get("canonical_url") or "",
-            last_version=item["version_no"], last_status=200,
-            document_key=key, missing_streak=0)
-        for alias_key in self._storage_keys(url_key, item):
-            if alias_key == url_key:
-                continue
+        # Bind both the requested URL and any real-redirect target to the same
+        # identity; validators are per URL but the archive id is shared.
+        for key in self._storage_keys(url_key, item):
             self.store.set_url_state(
-                source.source_id, alias_key, state="processed",
-                updated_at=now_iso(),
+                source.source_id, key, state="processed", updated_at=now_iso(),
                 etag=fetched.headers.get("etag") or "",
                 last_modified=fetched.headers.get("last-modified") or "",
                 content_digest=c_digest,
                 canonical_url=item.get("canonical_url") or "",
                 last_version=item["version_no"], last_status=200,
-                document_key=key, missing_streak=0)
-        doc = self.store.get_document(source.source_id, key)
-        if not doc or doc["state"] != "with_retracted":
-            self.store.mark_document_active(source.source_id, key, url_key)
+                notice_key=notice_key, archive_id=archive_id,
+                final_url_key=final_url_key, missing_streak=0)
+        self.store.bind_url_identity(
+            source.source_id, url_key, archive_id=archive_id,
+            final_url_key=final_url_key,
+            is_alias=bool(item.get("redirected_to")
+                          and item["redirected_to"] != url_key),
+            updated_at=now_iso(), scan_id=scan_id)
+        identity = self.store.get_identity(source.source_id, archive_id)
+        if not identity or identity["state"] != "with_retracted":
+            self.store.mark_identity_active(source.source_id, archive_id, url_key,
+                                            notice_key=notice_key)
         item["outcome"] = "ok"
         return self._persist_item(source, scan_id, item)
 
@@ -799,8 +830,8 @@ class ScanEngine:
 
         A request to an alias (short link) resolves to the canonical long URL;
         validators belong to the bytes at the final URL, so both rows carry
-        them.  This is what lets the *next* scan issue a conditional GET against
-        whichever URL the directory currently lists.
+        them.  Both rows point at the same ``archive_id`` — an alias never
+        creates a document.
         """
         keys = [url_key]
         if item.get("redirected_to") and item["redirected_to"] != url_key:
@@ -810,12 +841,14 @@ class ScanEngine:
     def _persist_item(self, source: SourceConfig, scan_id: int, item: dict) -> dict:
         payload = {k: v for k, v in item.items() if k not in {
             "scan_id", "source_id", "url_key", "kind", "outcome", "http_status",
-            "raw_digest", "document_key", "version_created", "version_id",
+            "raw_digest", "notice_key", "document_key", "archive_id",
+            "version_created", "version_id",
             "version_no", "version_reason", "requests", "note"}}
         self.store.add_scan_item(
             scan_id=scan_id, source_id=source.source_id, url_key=item["url_key"],
             kind=item.get("kind", "detail"), outcome=item["outcome"],
             http_status=item.get("http_status"), raw_digest=item.get("raw_digest"),
+            archive_id=item.get("archive_id"),
             document_key=item.get("document_key"),
             version_created=item.get("version_created", False),
             version_id=item.get("version_id"), version_no=item.get("version_no"),
@@ -829,18 +862,16 @@ class ScanEngine:
                            result: ScanResult) -> list[dict]:
         """Post-pass, run only when this scan's completeness verdict is final.
 
-        Withdrawal（撤稿）rule, applied literally:
+        Withdrawal（撤稿）rule, applied literally and per *identity*:
 
-        *count only complete rounds.*  Let ``R_last`` be the most recent **prior**
-        complete scan of this source.  A document is certified ``with_retracted``
-        iff this scan is complete, observed a 404 for the document, **and**
-        ``R_last`` also observed a 404 for it.  That is exactly "连续两轮完整
-        扫描均为 404": incomplete scans (503, network error, parse failure,
-        robots block, pagination loop, crash) are skipped — per the rule they
-        neither count as a round nor reset the count.
-
-        A complete round that served the document normally is *not* skipped, so
-        it breaks the chain and resets the evidence.
+        *count only complete rounds.*  Let ``R_last`` be the most recent prior
+        complete scan of this source.  A variant identity is certified
+        ``with_retracted`` iff this scan is complete, observed a 404 for the
+        identity, and ``R_last`` also observed a 404 for it.  Incomplete scans
+        (503, network error, parse failure, robots block, pagination loop,
+        crash) are skipped — they neither count as a round nor reset the count.
+        Sibling variants sharing a notice number have separate identities and
+        therefore separate evidence.
         """
         scans = self.store.scans(source.source_id)
         if not scans or scans[-1]["scan_id"] != scan_id:
@@ -848,13 +879,13 @@ class ScanEngine:
         prior_complete = [s for s in scans[:-1] if s["complete"]]
         last_round = prior_complete[-1] if prior_complete else None
         verdicts: list[dict] = []
-        for document_key in self.store.documents_missed_in_scan(scan_id):
-            miss_now = set(self.store.misses_in_scan(scan_id, document_key))
+        for archive_id in self.store.identities_missed_in_scan(scan_id):
+            miss_now = set(self.store.misses_in_scan(scan_id, archive_id))
             miss_last = set()
             if last_round is not None:
                 miss_last = {
                     row["url_key"] for row in self.store.complete_scans_missing(
-                        source.source_id, document_key)
+                        source.source_id, archive_id)
                     if row["scan_id"] == last_round["scan_id"]
                 }
             certified = (
@@ -862,8 +893,10 @@ class ScanEngine:
                 and last_round is not None
                 and bool(miss_now) and bool(miss_last)
             )
+            identity = self.store.get_identity(source.source_id, archive_id)
             verdict = {
-                "document_key": document_key,
+                "archive_id": archive_id,
+                "notice_key": identity["notice_key"] if identity else None,
                 "current_scan_id": scan_id,
                 "previous_complete_scan_id": (
                     last_round["scan_id"] if last_round else None),
@@ -879,40 +912,40 @@ class ScanEngine:
                     reason = "no earlier complete round; not enough evidence"
                 elif not miss_last:
                     reason = ("the most recent complete round did not observe a "
-                              "404 for this document")
+                              "404 for this identity")
                 elif not result.complete:
                     reason = "current scan is incomplete"
                 else:
                     reason = "current scan did not observe a 404"
                 verdict["reason"] = reason
                 result.notes.append(
-                    f"document {document_key}: 404 observed but withdrawal NOT "
+                    f"identity {archive_id}: 404 observed but withdrawal NOT "
                     f"certified ({reason}); remains temporarily_unreachable")
                 verdicts.append(verdict)
                 continue
 
-            self.store.mark_document_retracted(
-                source.source_id, document_key, retracted_at=now_iso(),
+            self.store.mark_identity_retracted(
+                source.source_id, archive_id, retracted_at=now_iso(),
                 scan_id=scan_id)
-            prior_versions = self.store.versions_for(source.source_id, document_key)
+            prior_versions = self.store.versions_for(source.source_id, archive_id)
             verdict["archived_versions_preserved"] = len(prior_versions)
             verdict["evidence"] = (
                 f"two consecutive complete rounds "
                 f"({last_round['scan_id']}, {scan_id}) both observed HTTP 404")
             result.notes.append(
-                f"document {document_key}: RETRACTED — 404 in consecutive complete "
+                f"identity {archive_id}: RETRACTED — 404 in consecutive complete "
                 f"rounds {last_round['scan_id']} and {scan_id}; "
                 f"{len(prior_versions)} archived version(s) remain readable")
             verdicts.append(verdict)
 
-        # Documents whose URL was not requested at all this scan are reported.
+        # Identities whose URL was not requested at all this scan are reported.
         item_urls = {item["url_key"] for item in result.detail_items}
-        for doc in self.store.documents(source.source_id):
+        for doc in self.store.identities(source.source_id):
             if doc["state"] == "with_retracted":
                 continue
             if doc["last_url_key"] and doc["last_url_key"] not in item_urls:
                 result.notes.append(
-                    f"document {doc['document_key']}: not requested this scan "
+                    f"identity {doc['archive_id']}: not requested this scan "
                     "(absent from directory or aliased); absence alone is not a 404")
         return verdicts
 
@@ -946,4 +979,4 @@ class ScanEngine:
             self.store.record_alias(source.source_id, hop["from"], hop["to"], scan_id)
             result.notes.append(
                 f"redirect {hop['status']}: {hop['from']} -> {hop['to']} "
-                "(in-scope target, followed)")
+                "(in-scope target, followed; alias shares the target identity)")

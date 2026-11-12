@@ -1,11 +1,11 @@
 {
   "scan_id": 2,
   "source_id": "sim_b",
-  "generated_at": "2026-11-12T12:51:56",
+  "generated_at": "2026-11-12T14:10:05",
   "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
   "requests": [
     {
-      "ts": 1794487914.871,
+      "ts": 1794492603.919,
       "source": "sim_b",
       "kind": "robots",
       "url": "http://127.0.0.1:8812/robots.txt",
@@ -19,7 +19,7 @@
       "note": ""
     },
     {
-      "ts": 1794487914.997,
+      "ts": 1794492604.042,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed",
@@ -33,7 +33,7 @@
       "note": ""
     },
     {
-      "ts": 1794487915.12,
+      "ts": 1794492604.161,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
@@ -41,13 +41,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 93.3,
+      "spacing_wait_ms": 107.8,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.241,
+      "ts": 1794492604.282,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
@@ -55,13 +55,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 113.6,
+      "spacing_wait_ms": 111.3,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.362,
+      "ts": 1794492604.406,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
@@ -69,13 +69,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 113.7,
+      "spacing_wait_ms": 113.9,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.482,
+      "ts": 1794492604.539,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
@@ -83,13 +83,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 116.2,
+      "spacing_wait_ms": 115.8,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.605,
+      "ts": 1794492604.651,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
@@ -97,13 +97,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 118.6,
+      "spacing_wait_ms": 108.9,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.73,
+      "ts": 1794492604.772,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
@@ -111,13 +111,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 103.4,
+      "spacing_wait_ms": 102.3,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.849,
+      "ts": 1794492604.899,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
@@ -125,13 +125,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 116.0,
+      "spacing_wait_ms": 117.9,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487915.969,
+      "ts": 1794492605.019,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
@@ -139,13 +139,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 102.7,
+      "spacing_wait_ms": 103.1,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487916.09,
+      "ts": 1794492605.161,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
@@ -153,13 +153,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 118.4,
+      "spacing_wait_ms": 115.9,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487916.211,
+      "ts": 1794492605.268,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
@@ -167,13 +167,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 104.7,
+      "spacing_wait_ms": 82.9,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487916.332,
+      "ts": 1794492605.384,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
@@ -181,13 +181,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 118.8,
+      "spacing_wait_ms": 113.8,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487916.332,
+      "ts": 1794492605.384,
       "source": "sim_b",
       "kind": "detail",
       "url": "https://outside.example.org/notices/B-2004",
@@ -201,7 +201,7 @@
       "note": "out-of-scope redirect target: https://outside.example.org/notices/B-2004: https://outside.example.org:443 is outside allowed origins (('http', '127.0.0.1', 8812),)"
     },
     {
-      "ts": 1794487916.455,
+      "ts": 1794492605.505,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
@@ -209,13 +209,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 115.2,
+      "spacing_wait_ms": 113.4,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487916.576,
+      "ts": 1794492605.63,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
@@ -223,7 +223,7 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 117.3,
+      "spacing_wait_ms": 118.6,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""

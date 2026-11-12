@@ -1,11 +1,11 @@
 {
   "scan_id": 14,
   "source_id": "sim_a",
-  "generated_at": "2026-11-12T12:52:12",
+  "generated_at": "2026-11-12T14:10:21",
   "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
   "requests": [
     {
-      "ts": 1794487931.105,
+      "ts": 1794492620.294,
       "source": "sim_a",
       "kind": "robots",
       "url": "http://127.0.0.1:8811/robots.txt",
@@ -19,7 +19,7 @@
       "note": ""
     },
     {
-      "ts": 1794487931.227,
+      "ts": 1794492620.417,
       "source": "sim_a",
       "kind": "directory",
       "url": "http://127.0.0.1:8811/notices",
@@ -27,13 +27,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 118.7,
+      "spacing_wait_ms": 118.6,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.349,
+      "ts": 1794492620.54,
       "source": "sim_a",
       "kind": "directory",
       "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
@@ -41,13 +41,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 113.2,
+      "spacing_wait_ms": 111.7,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.469,
+      "ts": 1794492620.671,
       "source": "sim_a",
       "kind": "directory",
       "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
@@ -55,13 +55,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 113.1,
+      "spacing_wait_ms": 113.4,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.59,
+      "ts": 1794492620.784,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
@@ -69,16 +69,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 115.4,
+      "spacing_wait_ms": 104.4,
       "conditional_headers": {
         "If-None-Match": "\"2d39d4b2c2e0485096dc\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.711,
+      "ts": 1794492620.909,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
@@ -86,16 +86,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 114.3,
+      "spacing_wait_ms": 111.9,
       "conditional_headers": {
         "If-None-Match": "\"7640801bca08d5a6a9f3\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.832,
+      "ts": 1794492621.034,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
@@ -103,16 +103,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.9,
+      "spacing_wait_ms": 111.1,
       "conditional_headers": {
         "If-None-Match": "\"3b36c5579e4840bb2348\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487931.958,
+      "ts": 1794492621.153,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
@@ -120,16 +120,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.6,
+      "spacing_wait_ms": 110.0,
       "conditional_headers": {
         "If-None-Match": "\"33db3b5f016812de6035\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:15 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487932.079,
+      "ts": 1794492621.275,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
@@ -137,16 +137,16 @@
       "requested": true,
       "status": 404,
       "outcome": "not_found",
-      "spacing_wait_ms": 114.4,
+      "spacing_wait_ms": 113.6,
       "conditional_headers": {
         "If-None-Match": "\"3a450ec400d656572754\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:15 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487932.202,
+      "ts": 1794492621.407,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
@@ -154,10 +154,10 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 105.9,
+      "spacing_wait_ms": 107.1,
       "conditional_headers": {
         "If-None-Match": "\"a79b2aef58a2d1dfab09\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:15 GMT"
       },
       "redirect_from": null,
       "note": ""

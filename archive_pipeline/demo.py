@@ -696,9 +696,9 @@ def demonstrate_restart(config: Config, store: Store, archive: RawArchive) -> di
         "pending_after_resume": pending_after,
         "notes": [note for note in resumed.notes if "resumed pending" in note],
         "documents_versions": {
-            doc["document_key"]: len(store.versions_for(source.source_id,
-                                                         doc["document_key"]))
-            for doc in store.documents(source.source_id)
+            doc["archive_id"]: len(store.versions_for(source.source_id,
+                                                       doc["archive_id"]))
+            for doc in store.identities(source.source_id)
         },
     }
 

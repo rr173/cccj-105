@@ -5,7 +5,17 @@
     python -m archive_pipeline.cli status
     python -m archive_pipeline.cli show-scan 15
     python -m archive_pipeline.cli versions --source sim_a
-    python -m archive_pipeline.cli diff --source sim_a --document A-1001
+    python -m archive_pipeline.cli diff --source sim_a --document A-1002
+    python -m archive_pipeline.cli identities --source sim_a
+    python -m archive_pipeline.cli repair --preview            # no writes
+    python -m archive_pipeline.cli repair --apply              # explicit apply
+
+Identity note
+-------------
+The page-published notice number (``--document``) is not unique once business
+variants exist.  When a number maps to more than one variant the lookup prints
+every candidate with its stable ``archive_id`` and distinguishing URL instead
+of silently picking one; pass ``--archive-id`` to address an exact variant.
 
 The CLI operates on the persistent state in ``work/`` (or ``--workdir``).
 """
@@ -20,6 +30,7 @@ from pathlib import Path
 from .archive import RawArchive
 from .config import load_config
 from .engine import ScanEngine
+from .repair import apply_plan, build_plan
 from .store import Store
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -37,6 +48,14 @@ def _open(args):
 
 def cmd_scan(args) -> int:
     config, store, archive = _open(args)
+    if store.is_legacy():
+        print(
+            "error: this database uses the pre-identity schema with merged "
+            "variant histories.\nRun 'python -m archive_pipeline.cli repair "
+            "--preview' then 'repair --apply' before scanning.",
+            file=sys.stderr)
+        store.close()
+        return 3
     engine = ScanEngine(config, store, archive, progress=print)
     targets = [s.source_id for s in config.sources] if args.all else args.source
     if not targets:
@@ -52,7 +71,8 @@ def cmd_scan(args) -> int:
             "paging_loop": result.paging_loop,
             "stop_reason": result.stop_reason,
             "details": {i["url_key"]: {"outcome": i["outcome"],
-                                       "version_created": i["version_created"]}
+                                       "version_created": i["version_created"],
+                                       "archive_id": i.get("archive_id")}
                         for i in result.detail_items},
             "notes": result.notes,
         }
@@ -65,18 +85,20 @@ def cmd_scan(args) -> int:
 
 def cmd_status(args) -> int:
     config, store, archive = _open(args)
-    payload = {"sources": {}}
+    payload = {"schema": "legacy" if store.is_legacy() else "identity",
+               "sources": {}}
     for source in config.sources:
         scans = store.scans(source.source_id)
-        documents = store.documents(source.source_id)
         payload["sources"][source.source_id] = {
             "scans": [{k: scan[k] for k in
                        ("scan_id", "complete", "status", "stop_reason",
                         "page_count", "detail_count")} for scan in scans],
-            "documents": documents,
+            "identities": store.identities(source.source_id),
             "pending_urls": [row["url_key"]
                              for row in store.pending_urls(source.source_id)],
             "versions": len(store.all_versions(source.source_id)),
+            "quarantine": [n for n in store.quarantine_notes()
+                           if n["source_id"] == source.source_id],
         }
     print(json.dumps(payload, ensure_ascii=False, indent=2))
     store.close()
@@ -100,41 +122,153 @@ def cmd_show_scan(args) -> int:
     return 0
 
 
-def cmd_versions(args) -> int:
+def _resolve_identities(store: Store, source_id: str, document: str | None,
+                        archive_id: str | None) -> tuple[list[dict], int]:
+    """Return (identities, exit_code). Never silently picks one of several."""
+    if archive_id:
+        identity = store.get_identity(source_id, archive_id)
+        if identity is None:
+            print(f"no identity {archive_id} in {source_id}", file=sys.stderr)
+            return [], 2
+        return [identity], 0
+    if not document:
+        raise SystemExit("specify --document NOTICE_KEY or --archive-id ID")
+    matches = store.identities_for_notice(source_id, document)
+    if not matches:
+        # The number may exist on versions even without an identity row.
+        versions = store.versions_for_notice(source_id, document)
+        if not versions:
+            print(f"no variants published notice number {document} in {source_id}",
+                  file=sys.stderr)
+            return [], 2
+        ids = sorted({v["archive_id"] for v in versions})
+        matches = [store.get_identity(source_id, aid) for aid in ids]
+        matches = [m for m in matches if m]
+    if len(matches) > 1:
+        print(f"notice number {document!r} is published by {len(matches)} business "
+              f"variants in {source_id}; refusing to pick one:\n", file=sys.stderr)
+        for identity in matches:
+            last = store.last_version(source_id, identity["archive_id"])
+            url = last["url_key"] if last else identity["last_url_key"]
+            print(f"  --archive-id {identity['archive_id']}  "
+                  f"state={identity['state']}  url={url}", file=sys.stderr)
+        print("\nre-run with one of the --archive-id values above.",
+              file=sys.stderr)
+        return matches, 4
+    return matches, 0
+
+
+def cmd_identities(args) -> int:
     config, store, archive = _open(args)
     for source in config.sources:
         if args.source and source.source_id != args.source:
             continue
-        for doc in store.documents(source.source_id):
-            print(f"{source.source_id} {doc['document_key']} [{doc['state']}]")
-            for version in store.versions_for(source.source_id, doc["document_key"]):
-                print(f"  v{version['version_no']} scan={version['scan_id']} "
-                      f"issued={version['issued_on']} title={version['title']}")
-                print(f"     raw={version['raw_digest']} "
-                      f"business={version['business_digest']}")
+        for identity in store.identities(source.source_id):
+            last = store.last_version(source.source_id, identity["archive_id"])
+            line = (f"{source.source_id} {identity['archive_id']} "
+                    f"notice={identity['notice_key'] or '-'} "
+                    f"[{identity['state']}/{identity['evidence_state']}] "
+                    f"versions={len(store.versions_for(source.source_id, identity['archive_id']))}")
+            if last:
+                line += f" last_url={last['url_key']}"
+            print(line)
     store.close()
     return 0
 
 
+def cmd_versions(args) -> int:
+    config, store, archive = _open(args)
+    if args.document or args.archive_id:
+        for source in config.sources:
+            if args.source and source.source_id != args.source:
+                continue
+            matches, code = _resolve_identities(
+                store, source.source_id, args.document, args.archive_id)
+            if code:
+                store.close()
+                return code
+            for identity in matches:
+                _print_identity_versions(store, source.source_id, identity)
+        store.close()
+        return 0
+    for source in config.sources:
+        if args.source and source.source_id != args.source:
+            continue
+        for identity in store.identities(source.source_id):
+            _print_identity_versions(store, source.source_id, identity)
+    store.close()
+    return 0
+
+
+def _print_identity_versions(store: Store, source_id: str, identity: dict) -> None:
+    print(f"{source_id} {identity['archive_id']} notice={identity['notice_key'] or '-'} "
+          f"[{identity['state']}/{identity['evidence_state']}]")
+    for version in store.versions_for(source_id, identity["archive_id"]):
+        legacy = (f" legacy_v={version['legacy_version_no']}"
+                  if version["legacy_version_no"] else "")
+        print(f"  v{version['version_no']} scan={version['scan_id']}{legacy} "
+              f"issued={version['issued_on']} title={version['title']}")
+        print(f"     url={version['url_key']}")
+        print(f"     raw={version['raw_digest']} "
+              f"business={version['business_digest']}")
+
+
 def cmd_diff(args) -> int:
     config, store, archive = _open(args)
-    versions = store.versions_for(args.source, args.document)
-    if not versions:
-        print(f"no versions for {args.source}/{args.document}", file=sys.stderr)
-        return 2
-    previous = None
-    for version in versions:
-        if previous is None:
-            print(f"v{version['version_no']} (initial)")
-        else:
-            from .engine import paragraph_diff
-            diff = paragraph_diff(previous["body"], version["body"])
-            print(f"v{previous['version_no']} -> v{version['version_no']}")
-            for paragraph in diff["paragraphs_removed"]:
-                print(f"  - {paragraph}")
-            for paragraph in diff["paragraphs_added"]:
-                print(f"  + {paragraph}")
-        previous = version
+    matches, code = _resolve_identities(
+        store, args.source, args.document, args.archive_id)
+    if code:
+        store.close()
+        return code
+    from .engine import paragraph_diff
+    for identity in matches:
+        versions = store.versions_for(args.source, identity["archive_id"])
+        if not versions:
+            print(f"no versions for {identity['archive_id']}", file=sys.stderr)
+            continue
+        print(f"# {identity['archive_id']} (notice {identity['notice_key'] or '-'})")
+        previous = None
+        for version in versions:
+            if previous is None:
+                print(f"v{version['version_no']} (initial)")
+            else:
+                diff = paragraph_diff(previous["body"], version["body"])
+                print(f"v{previous['version_no']} -> v{version['version_no']}")
+                for paragraph in diff["paragraphs_removed"]:
+                    print(f"  - {paragraph}")
+                for paragraph in diff["paragraphs_added"]:
+                    print(f"  + {paragraph}")
+            previous = version
+    store.close()
+    return 0
+
+
+def cmd_repair(args) -> int:
+    config, store, archive = _open(args)
+    plan = build_plan(store, archive)
+    if not plan.is_legacy:
+        print(json.dumps({
+            "status": "noop",
+            "reason": "database is already at the identity schema (or is empty); "
+                      "nothing to repair",
+            "repair_runs": store.repair_runs(),
+        }, ensure_ascii=False, indent=2))
+        store.close()
+        return 0
+    print(json.dumps(plan.to_dict(), ensure_ascii=False, indent=2))
+    if args.preview or not args.apply:
+        print("\nPreview only: no rows were changed. Re-run with --apply to migrate.",
+              file=sys.stderr)
+        store.close()
+        return 0
+    try:
+        summary = apply_plan(store, plan, fail_after_sql=args.fail_point)
+    except Exception as exc:  # controlled or unexpected failure: rolled back
+        print(json.dumps({"status": "failed_rolled_back", "error": repr(exc)},
+                         ensure_ascii=False, indent=2), file=sys.stderr)
+        store.close()
+        return 5
+    print("\n" + json.dumps(summary, ensure_ascii=False, indent=2))
     store.close()
     return 0
 
@@ -152,21 +286,37 @@ def main(argv: list[str] | None = None) -> int:
                       help="stop after N detail fetches, leaving frontier pending")
     scan.set_defaults(func=cmd_scan)
 
-    status = sub.add_parser("status", help="print scan/document state")
+    status = sub.add_parser("status", help="print scan/identity state")
     status.set_defaults(func=cmd_status)
 
     show = sub.add_parser("show-scan", help="dump one scan's manifest")
     show.add_argument("scan_id", type=int)
     show.set_defaults(func=cmd_show_scan)
 
+    identities = sub.add_parser("identities", help="list stable variant identities")
+    identities.add_argument("--source")
+    identities.set_defaults(func=cmd_identities)
+
     versions = sub.add_parser("versions", help="list versions")
     versions.add_argument("--source")
+    versions.add_argument("--document", help="page-published notice number")
+    versions.add_argument("--archive-id", help="exact stable variant identity")
     versions.set_defaults(func=cmd_versions)
 
-    diff = sub.add_parser("diff", help="print version diffs for a document")
+    diff = sub.add_parser("diff", help="print version diffs for a variant")
     diff.add_argument("--source", required=True)
-    diff.add_argument("--document", required=True)
+    diff.add_argument("--document", help="page-published notice number")
+    diff.add_argument("--archive-id", help="exact stable variant identity")
     diff.set_defaults(func=cmd_diff)
+
+    repair = sub.add_parser("repair", help="repair merged legacy histories")
+    repair.add_argument("--preview", action="store_true",
+                        help="read-only plan (the default)")
+    repair.add_argument("--apply", action="store_true",
+                        help="apply the plan atomically")
+    repair.add_argument("--fail-point",
+                        help="test hook: fail after this migration SQL step")
+    repair.set_defaults(func=cmd_repair)
 
     args = parser.parse_args(argv)
     return args.func(args)

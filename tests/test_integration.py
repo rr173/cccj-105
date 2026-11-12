@@ -83,6 +83,18 @@ class SimTestCase(unittest.TestCase):
                                           f"got {[m['url_key'] for m in matches]}")
         return matches[0]
 
+    def identity_for_url(self, source_id: str, needle: str) -> str:
+        """Return the stable archive_id of the variant whose URL contains needle."""
+        rows = [r for r in self.store.list_frontier(source_id)
+                if needle in r["url_key"] and r["archive_id"]]
+        self.assertEqual(len({r["archive_id"] for r in rows}), 1,
+                         f"ambiguous identity for {needle}: {rows}")
+        return rows[0]["archive_id"]
+
+    def versions_for_url(self, source_id: str, needle: str) -> list[dict]:
+        return self.store.versions_for(
+            source_id, self.identity_for_url(source_id, needle))
+
     def request_entries(self, result) -> list[dict]:
         return result.requests
 
@@ -119,8 +131,10 @@ class DirectoryAndNormalizationTests(SimTestCase):
         public = self.item(result, "A-1002?edition=public")
         self.assertEqual(plain["document_key"], "A-1002")
         self.assertEqual(public["document_key"], "A-1002P")
+        # The page-published number alone is not the archive identity.
+        self.assertNotEqual(plain["archive_id"], public["archive_id"])
         self.assertNotEqual(plain["content_digest"], public["content_digest"])
-        versions = self.store.versions_for("sim_a", "A-1002P")
+        versions = self.store.versions_for("sim_a", public["archive_id"])
         self.assertEqual(len(versions), 1)
 
     def test_relative_links_resolve_against_directory_url(self):
@@ -209,7 +223,7 @@ class ConditionalAndVersionTests(SimTestCase):
         item = self.item(second, "A-1001")
         self.assertEqual(item["version_no"], 1)
         self.assertFalse(item["version_created"])
-        version = self.store.versions_for("sim_a", "A-1001")[0]
+        version = self.versions_for_url("sim_a", "A-1001")[0]
         self.assertNotEqual(version["body"], "")
         self.assertIn("First" if False else "经研究决定", version["body"])
         # 304 body (empty) is archived under its own digest.
@@ -228,9 +242,9 @@ class ConditionalAndVersionTests(SimTestCase):
         self.assertFalse(item["version_created"])
         self.assertTrue(item["raw_bytes_changed"])
         self.assertEqual(item["version_reason"], "business_fields_unchanged")
-        self.assertEqual(len(self.store.versions_for("sim_a", "A-1001")), 1)
+        self.assertEqual(len(self.versions_for_url("sim_a", "A-1001")), 1)
         self.assertEqual(
-            self.store.versions_for("sim_a", "A-1001")[0]["version_no"], 1)
+            self.versions_for_url("sim_a", "A-1001")[0]["version_no"], 1)
 
     def test_navigation_only_change_no_version(self):
         self.scan("sim_a")
@@ -254,7 +268,7 @@ class ConditionalAndVersionTests(SimTestCase):
         self.assertIn("body", item["changed_fields"])
         self.assertIn("新增：试点评估报告于每季度末发布。",
                       item["diff"]["paragraphs_added"])
-        versions = self.store.versions_for("sim_a", "A-1001")
+        versions = self.versions_for_url("sim_a", "A-1001")
         self.assertEqual(len(versions), 2)
         self.assertEqual(versions[1]["body"], item["body_paragraphs"] and
                          "\n\n".join(item["body_paragraphs"]))
@@ -282,23 +296,23 @@ class RetractionTests(SimTestCase):
         self.mutate([{"site": "layout_a", "notice_key": "A-1044",
                       "fields": {"available": False}}])
         result = self.scan("sim_a")
-        doc = self.store.get_document("sim_a", "A-1044")
+        doc = self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))
         self.assertEqual(doc["state"], "temporarily_unreachable")
         self.assertEqual(doc["missing_streak"], 1)
         self.assertIsNone(doc["retracted_at"])
         # Evidence table rows are only for complete scans; this one is complete.
-        self.assertTrue(self.store.complete_scans_missing("sim_a", "A-1044"))
+        self.assertTrue(self.store.complete_scans_missing("sim_a", self.identity_for_url("sim_a", "A-1044")))
 
     def test_two_consecutive_complete_404s_retract_with_versions_preserved(self):
         baseline = self.scan("sim_a")
-        self.assertEqual(len(self.store.versions_for("sim_a", "A-1044")), 1)
+        self.assertEqual(len(self.versions_for_url("sim_a", "A-1044")), 1)
         self.mutate([{"site": "layout_a", "notice_key": "A-1044",
                       "fields": {"available": False}}])
         first_miss = self.scan("sim_a")
-        self.assertEqual(self.store.get_document("sim_a", "A-1044")["state"],
+        self.assertEqual(self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))["state"],
                          "temporarily_unreachable")
         second_miss = self.scan("sim_a")
-        doc = self.store.get_document("sim_a", "A-1044")
+        doc = self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))
         self.assertEqual(doc["state"], "with_retracted")
         self.assertEqual(doc["missing_streak"], 2)
         self.assertIsNotNone(doc["retracted_at"])
@@ -306,7 +320,7 @@ class RetractionTests(SimTestCase):
         self.assertTrue(verdict["certified"])
         self.assertEqual(verdict["archived_versions_preserved"], 1)
         # History still readable after retraction.
-        self.assertEqual(len(self.store.versions_for("sim_a", "A-1044")), 1)
+        self.assertEqual(len(self.versions_for_url("sim_a", "A-1044")), 1)
 
     def test_503_is_not_a_round_and_does_not_advance_counter(self):
         self.scan("sim_a")
@@ -314,10 +328,10 @@ class RetractionTests(SimTestCase):
                       "fields": {"status_override": 503}}])
         result = self.scan("sim_a")
         self.assertFalse(result.complete)
-        doc = self.store.get_document("sim_a", "A-1055")
+        doc = self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1055"))
         self.assertIn(doc["state"], {"active", "temporarily_unreachable"})
         self.assertEqual(doc["missing_streak"], 0)
-        self.assertEqual(self.store.complete_scans_missing("sim_a", "A-1055"), [])
+        self.assertEqual(self.store.complete_scans_missing("sim_a", self.identity_for_url("sim_a", "A-1055")), [])
 
     def test_503_between_404s_does_not_reset_evidence(self):
         """Sequence: complete 404, incomplete 503, complete 404 -> retract.
@@ -336,13 +350,13 @@ class RetractionTests(SimTestCase):
                       "fields": {"status_override": 503}}])
         middle = self.scan("sim_a")
         self.assertFalse(middle.complete)
-        self.assertIsNone(self.store.get_document("sim_a", "A-1044")["retracted_at"])
+        self.assertIsNone(self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))["retracted_at"])
         # Now a complete scan with A-1055 healthy and A-1044 still 404.
         self.mutate([{"site": "layout_a", "notice_key": "A-1055",
                       "fields": {"status_override": None}}])
         third = self.scan("sim_a")
         self.assertTrue(third.complete)
-        doc = self.store.get_document("sim_a", "A-1044")
+        doc = self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))
         self.assertEqual(doc["state"], "with_retracted")
         verdict = third.retraction_verdicts[0]
         self.assertEqual(verdict["previous_complete_scan_id"], first_404.scan_id)
@@ -356,12 +370,12 @@ class RetractionTests(SimTestCase):
         self.mutate([{"site": "layout_a", "notice_key": "A-1044",
                       "fields": {"available": True}}])
         recovery = self.scan("sim_a")
-        self.assertEqual(self.store.get_document("sim_a", "A-1044")["state"], "active")
+        self.assertEqual(self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))["state"], "active")
         self.mutate([{"site": "layout_a", "notice_key": "A-1044",
                       "fields": {"available": False}}])
         again = self.scan("sim_a")
         # Only one 404 since recovery: not certified.
-        doc = self.store.get_document("sim_a", "A-1044")
+        doc = self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))
         self.assertEqual(doc["state"], "temporarily_unreachable")
         self.assertIsNone(doc["retracted_at"])
 
@@ -371,12 +385,12 @@ class RetractionTests(SimTestCase):
                       "fields": {"available": False}}])
         self.scan("sim_a")
         self.scan("sim_a")
-        self.assertEqual(self.store.get_document("sim_a", "A-1044")["state"],
+        self.assertEqual(self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))["state"],
                          "with_retracted")
         self.mutate([{"site": "layout_a", "notice_key": "A-1044",
                       "fields": {"available": True}}])
         result = self.scan("sim_a")
-        self.assertEqual(self.store.get_document("sim_a", "A-1044")["state"], "active")
+        self.assertEqual(self.store.get_identity("sim_a", self.identity_for_url("sim_a", "A-1044"))["state"], "active")
 
 
 class PaginationTests(SimTestCase):
@@ -429,10 +443,10 @@ class PersistenceTests(SimTestCase):
         leftover = [row["url_key"] for row in self.store.pending_urls("sim_b")]
         self.assertTrue(all("offsite-hop" in key for key in leftover), leftover)
         # No duplicate versions were produced for already-seen documents.
-        for doc in self.store.documents("sim_b"):
+        for doc in self.store.identities("sim_b"):
             self.assertEqual(
-                len(self.store.versions_for("sim_b", doc["document_key"])) , 1,
-                doc["document_key"])
+                len(self.store.versions_for("sim_b", doc["archive_id"])), 1,
+                doc["archive_id"])
 
     def test_frontier_survives_reopen_and_conditional_get_still_works(self):
         self.scan("sim_a")

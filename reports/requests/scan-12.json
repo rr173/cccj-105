@@ -1,11 +1,11 @@
 {
   "scan_id": 12,
   "source_id": "sim_b",
-  "generated_at": "2026-11-12T12:52:09",
+  "generated_at": "2026-11-12T14:10:19",
   "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
   "requests": [
     {
-      "ts": 1794487928.776,
+      "ts": 1794492617.937,
       "source": "sim_b",
       "kind": "robots",
       "url": "http://127.0.0.1:8812/robots.txt",
@@ -19,7 +19,7 @@
       "note": ""
     },
     {
-      "ts": 1794487928.897,
+      "ts": 1794492618.059,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed",
@@ -27,13 +27,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 118.5,
+      "spacing_wait_ms": 119.1,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.018,
+      "ts": 1794492618.185,
       "source": "sim_b",
       "kind": "directory",
       "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
@@ -41,13 +41,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 113.2,
+      "spacing_wait_ms": 112.5,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.139,
+      "ts": 1794492618.304,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
@@ -55,16 +55,16 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 112.7,
+      "spacing_wait_ms": 105.6,
       "conditional_headers": {
         "If-None-Match": "\"934c26afe9a6b617065b\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.26,
+      "ts": 1794492618.426,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
@@ -72,16 +72,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 118.7,
+      "spacing_wait_ms": 118.1,
       "conditional_headers": {
         "If-None-Match": "\"934c26afe9a6b617065b\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.381,
+      "ts": 1794492618.56,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
@@ -89,16 +89,16 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 110.7,
+      "spacing_wait_ms": 107.7,
       "conditional_headers": {
         "If-None-Match": "\"370b13ede25c49389671\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.504,
+      "ts": 1794492618.672,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
@@ -106,16 +106,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 118.7,
+      "spacing_wait_ms": 108.1,
       "conditional_headers": {
         "If-None-Match": "\"370b13ede25c49389671\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.627,
+      "ts": 1794492618.807,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
@@ -123,16 +123,16 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 111.2,
+      "spacing_wait_ms": 110.4,
       "conditional_headers": {
         "If-None-Match": "\"e22cd6e5b608d743597c\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.748,
+      "ts": 1794492618.922,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
@@ -140,16 +140,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 118.4,
+      "spacing_wait_ms": 107.0,
       "conditional_headers": {
         "If-None-Match": "\"e22cd6e5b608d743597c\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:16 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.87,
+      "ts": 1794492619.046,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
@@ -157,13 +157,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 111.9,
+      "spacing_wait_ms": 104.3,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.99,
+      "ts": 1794492619.163,
       "source": "sim_b",
       "kind": "detail",
       "url": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
@@ -171,13 +171,13 @@
       "requested": true,
       "status": 302,
       "outcome": "redirect",
-      "spacing_wait_ms": 118.5,
+      "spacing_wait_ms": 112.7,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487929.99,
+      "ts": 1794492619.163,
       "source": "sim_b",
       "kind": "detail",
       "url": "https://outside.example.org/notices/B-2004",

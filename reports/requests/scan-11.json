@@ -1,11 +1,11 @@
 {
   "scan_id": 11,
   "source_id": "sim_a",
-  "generated_at": "2026-11-12T12:52:08",
+  "generated_at": "2026-11-12T14:10:17",
   "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
   "requests": [
     {
-      "ts": 1794487927.918,
+      "ts": 1794492617.06,
       "source": "sim_a",
       "kind": "robots",
       "url": "http://127.0.0.1:8811/robots.txt",
@@ -19,7 +19,7 @@
       "note": ""
     },
     {
-      "ts": 1794487928.04,
+      "ts": 1794492617.191,
       "source": "sim_a",
       "kind": "directory",
       "url": "http://127.0.0.1:8811/notices",
@@ -27,13 +27,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 118.2,
+      "spacing_wait_ms": 118.1,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.16,
+      "ts": 1794492617.312,
       "source": "sim_a",
       "kind": "directory",
       "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
@@ -41,13 +41,13 @@
       "requested": true,
       "status": 200,
       "outcome": "ok",
-      "spacing_wait_ms": 110.7,
+      "spacing_wait_ms": 110.4,
       "conditional_headers": {},
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.281,
+      "ts": 1794492617.433,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
@@ -55,16 +55,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.7,
+      "spacing_wait_ms": 112.0,
       "conditional_headers": {
         "If-None-Match": "\"2d39d4b2c2e0485096dc\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.403,
+      "ts": 1794492617.555,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
@@ -72,16 +72,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.4,
+      "spacing_wait_ms": 111.0,
       "conditional_headers": {
         "If-None-Match": "\"7640801bca08d5a6a9f3\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.523,
+      "ts": 1794492617.68,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
@@ -89,16 +89,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 114.5,
+      "spacing_wait_ms": 111.4,
       "conditional_headers": {
         "If-None-Match": "\"3b36c5579e4840bb2348\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:14 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.645,
+      "ts": 1794492617.809,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
@@ -106,16 +106,16 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.6,
+      "spacing_wait_ms": 109.8,
       "conditional_headers": {
         "If-None-Match": "\"33db3b5f016812de6035\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:05 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:15 GMT"
       },
       "redirect_from": null,
       "note": ""
     },
     {
-      "ts": 1794487928.765,
+      "ts": 1794492617.927,
       "source": "sim_a",
       "kind": "detail",
       "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
@@ -123,10 +123,10 @@
       "requested": true,
       "status": 304,
       "outcome": "not_modified",
-      "spacing_wait_ms": 113.7,
+      "spacing_wait_ms": 100.0,
       "conditional_headers": {
         "If-None-Match": "\"3a450ec400d656572754\"",
-        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+        "If-Modified-Since": "Thu, 12 Nov 2026 14:10:15 GMT"
       },
       "redirect_from": null,
       "note": ""

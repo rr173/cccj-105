@@ -1,6 +1,6 @@
 # 公共研究通告归档管线 · 端到端演示报告
 
-生成时间：2026-11-12T12:52:18
+生成时间：2026-11-12T14:10:28
 
 所有请求仅发往本地模拟站点 `127.0.0.1:8811`(sim_a) 与 `127.0.0.1:8812`(sim_b)。
 
@@ -40,7 +40,7 @@
 
 - detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made
 - detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made
-- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested
+- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested and never used for identity
 
 请求清单文件：`reports/requests/scan-1.json`
 
@@ -75,10 +75,10 @@
 
 - detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made
 - detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-2.json`
 
@@ -118,7 +118,7 @@
 
 - detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made
 - detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made
-- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested
+- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested and never used for identity
 
 请求清单文件：`reports/requests/scan-1.json`
 
@@ -153,10 +153,10 @@
 
 - detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made
 - detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-2.json`
 
@@ -330,10 +330,10 @@
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-4.json`
 
@@ -348,7 +348,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_47b8fbdadbda2619960c7238fbc322bb; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_a",
@@ -356,7 +356,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_dc5fb4d913b112768f29e10fd902d153; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_a",
@@ -364,7 +364,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_b210b8fe53928f2753daa5ed1a26c44c; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_a",
@@ -372,7 +372,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_845f792f984cbb254eb209e0e05e9392; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_a",
@@ -380,7 +380,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_0d2b4f4964ba676b5c014db5c3d6055f; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_a",
@@ -388,7 +388,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_bf25c4d7c2a7811caec3369a2ae12a11; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_b",
@@ -396,7 +396,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_f9bf016333930cd0fc516a0dd218ee88; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_b",
@@ -404,7 +404,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_055f26d93721ef53ed48fdf8ca188221; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_b",
@@ -412,7 +412,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_ccde4670b436f4a7239cf20f674541f1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     },
     {
       "source": "sim_b",
@@ -420,7 +420,7 @@
       "status": 304,
       "version": 1,
       "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+      "note": "HTTP 304: reused archived version 1 of arc_35e167cf3566812a2abff0a7570f2eb8; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
     }
   ]
 }
@@ -468,7 +468,7 @@
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full
-- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested
+- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested and never used for identity
 
 请求清单文件：`reports/requests/scan-5.json`
 
@@ -508,10 +508,10 @@
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-6.json`
 
@@ -695,10 +695,10 @@ A-1001 正文修改并新增段落；B-2001 标题修改。两者均产生新版
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-8.json`
 
@@ -782,7 +782,7 @@ A-1001 正文修改并新增段落；B-2001 标题修改。两者均产生新版
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full
-- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested
+- http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested and never used for identity
 
 请求清单文件：`reports/requests/scan-9.json`
 
@@ -822,10 +822,10 @@ A-1001 正文修改并新增段落；B-2001 标题修改。两者均产生新版
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 
 请求清单文件：`reports/requests/scan-10.json`
 
@@ -1072,9 +1072,9 @@ B 站第 2 页的 rel=next 指回自身。遍历识别到环后立即终止，�
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2
-- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)
-- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)
+- redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed; alias shares the target identity)
+- redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed; alias shares the target identity)
 - scan incomplete: no 404 in this scan can count toward withdrawal; documents remain temporarily_unreachable at most
 
 请求清单文件：`reports/requests/scan-12.json`
@@ -1188,13 +1188,17 @@ A-1055 返回 503。该扫描 `complete=false`；503 不推进 404 缺失计数�
   ],
   "document_state": {
     "source_id": "sim_a",
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "state": "active",
     "retracted_at": null,
     "retracted_scan": null,
     "missing_streak": 0,
     "previous_state": null,
-    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1055"
   }
 }
 ```
@@ -1231,7 +1235,8 @@ A-1044 首次 404，仅 `temporarily_unreachable`，缺失计数 1，不撤稿�
 ```json
 [
   {
-    "document_key": "A-1044",
+    "archive_id": "arc_0d2b4f4964ba676b5c014db5c3d6055f",
+    "notice_key": "A-1044",
     "current_scan_id": 14,
     "previous_complete_scan_id": 9,
     "skipped_incomplete_scans": [
@@ -1243,7 +1248,7 @@ A-1044 首次 404，仅 `temporarily_unreachable`，缺失计数 1，不撤稿�
     ],
     "previous_complete_misses": [],
     "certified": false,
-    "reason": "the most recent complete round did not observe a 404 for this document"
+    "reason": "the most recent complete round did not observe a 404 for this identity"
   }
 ]
 ```
@@ -1263,7 +1268,7 @@ A-1044 首次 404，仅 `temporarily_unreachable`，缺失计数 1，不撤稿�
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full
-- document A-1044: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this document); remains temporarily_unreachable
+- identity arc_0d2b4f4964ba676b5c014db5c3d6055f: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this identity); remains temporarily_unreachable
 
 请求清单文件：`reports/requests/scan-14.json`
 
@@ -1273,13 +1278,17 @@ A-1044 首次 404，仅 `temporarily_unreachable`，缺失计数 1，不撤稿�
 {
   "document_state": {
     "source_id": "sim_a",
-    "document_key": "A-1044",
+    "archive_id": "arc_0d2b4f4964ba676b5c014db5c3d6055f",
+    "notice_key": "A-1044",
     "state": "temporarily_unreachable",
     "retracted_at": null,
     "retracted_scan": null,
     "missing_streak": 1,
     "previous_state": "active",
-    "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1044"
   },
   "detail": [
     {
@@ -1335,7 +1344,8 @@ A-1044 恢复（缺失计数清零、状态回到 active）；A-1055 首次 404�
 ```json
 [
   {
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "current_scan_id": 15,
     "previous_complete_scan_id": 14,
     "skipped_incomplete_scans": [
@@ -1347,7 +1357,7 @@ A-1044 恢复（缺失计数清零、状态回到 active）；A-1055 首次 404�
     ],
     "previous_complete_misses": [],
     "certified": false,
-    "reason": "the most recent complete round did not observe a 404 for this document"
+    "reason": "the most recent complete round did not observe a 404 for this identity"
   }
 ]
 ```
@@ -1367,7 +1377,7 @@ A-1044 恢复（缺失计数清零、状态回到 active）；A-1055 首次 404�
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full
-- document A-1055: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this document); remains temporarily_unreachable
+- identity arc_bf25c4d7c2a7811caec3369a2ae12a11: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this identity); remains temporarily_unreachable
 
 请求清单文件：`reports/requests/scan-15.json`
 
@@ -1377,23 +1387,31 @@ A-1044 恢复（缺失计数清零、状态回到 active）；A-1055 首次 404�
 {
   "A-1044": {
     "source_id": "sim_a",
-    "document_key": "A-1044",
+    "archive_id": "arc_0d2b4f4964ba676b5c014db5c3d6055f",
+    "notice_key": "A-1044",
     "state": "active",
     "retracted_at": null,
     "retracted_scan": null,
     "missing_streak": 0,
     "previous_state": "active",
-    "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1044"
   },
   "A-1055": {
     "source_id": "sim_a",
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "state": "temporarily_unreachable",
     "retracted_at": null,
     "retracted_scan": null,
     "missing_streak": 1,
     "previous_state": "active",
-    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1055"
   }
 }
 ```
@@ -1430,7 +1448,8 @@ A-1055 在第八轮（完整）与本轮（完整）均 404，两轮相邻且都
 ```json
 [
   {
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "current_scan_id": 16,
     "previous_complete_scan_id": 15,
     "skipped_incomplete_scans": [
@@ -1465,7 +1484,7 @@ A-1055 在第八轮（完整）与本轮（完整）均 404，两轮相邻且都
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full
 - resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full
-- document A-1055: RETRACTED — 404 in consecutive complete rounds 15 and 16; 1 archived version(s) remain readable
+- identity arc_bf25c4d7c2a7811caec3369a2ae12a11: RETRACTED — 404 in consecutive complete rounds 15 and 16; 1 archived version(s) remain readable
 
 请求清单文件：`reports/requests/scan-16.json`
 
@@ -1475,17 +1494,22 @@ A-1055 在第八轮（完整）与本轮（完整）均 404，两轮相邻且都
 {
   "A-1055": {
     "source_id": "sim_a",
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "state": "with_retracted",
-    "retracted_at": "2026-11-12T12:52:14+00:00",
+    "retracted_at": "2026-11-12T14:10:23+00:00",
     "retracted_scan": 16,
     "missing_streak": 2,
     "previous_state": "active",
-    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1055"
   },
   "verdicts": [
     {
-      "document_key": "A-1055",
+      "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+      "notice_key": "A-1055",
       "current_scan_id": 16,
       "previous_complete_scan_id": 15,
       "skipped_incomplete_scans": [
@@ -1564,13 +1588,17 @@ A-1055 返回 503，扫描不完整。即便此前已有撤稿证据，这一轮
   },
   "A-1055": {
     "source_id": "sim_a",
-    "document_key": "A-1055",
+    "archive_id": "arc_bf25c4d7c2a7811caec3369a2ae12a11",
+    "notice_key": "A-1055",
     "state": "with_retracted",
-    "retracted_at": "2026-11-12T12:52:14+00:00",
+    "retracted_at": "2026-11-12T14:10:23+00:00",
     "retracted_scan": 16,
     "missing_streak": 2,
     "previous_state": "active",
-    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+    "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+    "evidence_state": "confirmed",
+    "created_at": "2026-11-12T14:10:03+00:00",
+    "document_key": "A-1055"
   }
 }
 ```
@@ -1649,10 +1677,10 @@ B 站扫描在请求完 2 个详情后被强制中断；frontier 中保留 pendi
     "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
   ],
   "documents_versions": {
-    "B-2001": 2,
-    "B-2002": 1,
-    "B-2003": 1,
-    "B-2005": 1
+    "arc_f9bf016333930cd0fc516a0dd218ee88": 2,
+    "arc_055f26d93721ef53ed48fdf8ca188221": 1,
+    "arc_ccde4670b436f4a7239cf20f674541f1": 1,
+    "arc_35e167cf3566812a2abff0a7570f2eb8": 1
   }
 }
 ```
@@ -1683,7 +1711,7 @@ B 站扫描在请求完 2 个详情后被强制中断；frontier 中保留 pendi
 | sim_a | A-1002P | active | — | 0 | `http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public` |
 | sim_a | A-1003 | active | — | 0 | `http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full` |
 | sim_a | A-1044 | active | — | 0 | `http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full` |
-| sim_a | A-1055 | with_retracted | 2026-11-12T12:52:14+00:00 | 2 | `http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full` |
+| sim_a | A-1055 | with_retracted | 2026-11-12T14:10:23+00:00 | 2 | `http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full` |
 | sim_b | B-2001 | active | — | 0 | `http://127.0.0.1:8812/n/water-quality?a=1&b=2` |
 | sim_b | B-2002 | active | — | 0 | `http://127.0.0.1:8812/n/grant-round?a=1&b=2` |
 | sim_b | B-2003 | active | — | 0 | `http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2` |
