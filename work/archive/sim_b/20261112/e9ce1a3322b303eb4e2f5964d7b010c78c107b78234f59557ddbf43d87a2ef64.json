@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "e9ce1a3322b303eb4e2f5964d7b010c78c107b78234f59557ddbf43d87a2ef64",
+  "bytes": 1614,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8812/feed",
+  "final_url": "http://127.0.0.1:8812/feed",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"e9ce1a3322b303eb4e2f\"",
+  "last_modified": "Thu, 12 Nov 2026 12:52:03 GMT",
+  "scan_id": 8,
+  "kind": "directory",
+  "fetched_at": "2026-11-12T12:52:03.493858+00:00",
+  "storage": "identity"
+}

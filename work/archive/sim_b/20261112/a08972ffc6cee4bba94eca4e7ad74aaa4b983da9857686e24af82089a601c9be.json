@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+  "bytes": 845,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+  "final_url": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"a08972ffc6cee4bba94e\"",
+  "last_modified": "Thu, 12 Nov 2026 12:51:56 GMT",
+  "scan_id": 2,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:51:56.576043+00:00",
+  "storage": "identity"
+}

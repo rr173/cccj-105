@@ -1,0 +1,215 @@
+{
+  "scan_id": 12,
+  "source_id": "sim_b",
+  "generated_at": "2026-11-12T12:52:09",
+  "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
+  "requests": [
+    {
+      "ts": 1794487928.776,
+      "source": "sim_b",
+      "kind": "robots",
+      "url": "http://127.0.0.1:8812/robots.txt",
+      "normalized": "http://127.0.0.1:8812/robots.txt",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487928.897,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed",
+      "normalized": "http://127.0.0.1:8812/feed",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.5,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.018,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 113.2,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.139,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 112.7,
+      "conditional_headers": {
+        "If-None-Match": "\"934c26afe9a6b617065b\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.26,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 118.7,
+      "conditional_headers": {
+        "If-None-Match": "\"934c26afe9a6b617065b\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:06 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.381,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 110.7,
+      "conditional_headers": {
+        "If-None-Match": "\"370b13ede25c49389671\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.504,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 118.7,
+      "conditional_headers": {
+        "If-None-Match": "\"370b13ede25c49389671\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.627,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 111.2,
+      "conditional_headers": {
+        "If-None-Match": "\"e22cd6e5b608d743597c\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.748,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 118.4,
+      "conditional_headers": {
+        "If-None-Match": "\"e22cd6e5b608d743597c\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:07 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.87,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 111.9,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.99,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 118.5,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487929.99,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "https://outside.example.org/notices/B-2004",
+      "normalized": "https://outside.example.org/notices/B-2004",
+      "requested": false,
+      "status": null,
+      "outcome": "redirect_blocked",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "note": "out-of-scope redirect target: https://outside.example.org/notices/B-2004: https://outside.example.org:443 is outside allowed origins (('http', '127.0.0.1', 8812),)"
+    }
+  ],
+  "blocked_candidates": [
+    {
+      "url": "https://example.invalid/escape",
+      "where": "detail link on http://127.0.0.1:8812/feed",
+      "reason": "origin_not_allowed"
+    },
+    {
+      "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+      "where": "detail link on http://127.0.0.1:8812/feed",
+      "reason": "robots_disallowed"
+    },
+    {
+      "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "where": "detail",
+      "reason": "redirect_blocked"
+    }
+  ],
+  "seed_urls": [
+    "http://127.0.0.1:8812/feed",
+    "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+  ]
+}

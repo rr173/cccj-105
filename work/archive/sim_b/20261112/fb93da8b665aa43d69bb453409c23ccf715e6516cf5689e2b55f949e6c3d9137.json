@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "fb93da8b665aa43d69bb453409c23ccf715e6516cf5689e2b55f949e6c3d9137",
+  "bytes": 897,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+  "final_url": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"fb93da8b665aa43d69bb\"",
+  "last_modified": "Thu, 12 Nov 2026 12:52:01 GMT",
+  "scan_id": 6,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:52:01.513991+00:00",
+  "storage": "identity"
+}

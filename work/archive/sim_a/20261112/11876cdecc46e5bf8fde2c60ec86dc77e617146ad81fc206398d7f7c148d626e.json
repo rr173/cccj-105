@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+  "bytes": 956,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+  "final_url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"11876cdecc46e5bf8fde\"",
+  "last_modified": "Thu, 12 Nov 2026 12:51:54 GMT",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:51:54.614424+00:00",
+  "storage": "identity"
+}

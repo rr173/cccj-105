@@ -1,0 +1,183 @@
+{
+  "scan_id": 5,
+  "source_id": "sim_a",
+  "generated_at": "2026-11-12T12:52:00",
+  "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
+  "requests": [
+    {
+      "ts": 1794487919.428,
+      "source": "sim_a",
+      "kind": "robots",
+      "url": "http://127.0.0.1:8811/robots.txt",
+      "normalized": "http://127.0.0.1:8811/robots.txt",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487919.548,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices",
+      "normalized": "http://127.0.0.1:8811/notices",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.7,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487919.671,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 112.2,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487919.794,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 112.9,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487919.914,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 111.3,
+      "conditional_headers": {
+        "If-None-Match": "\"c790ae5b23aaae91e054\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487920.035,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 109.4,
+      "conditional_headers": {
+        "If-None-Match": "\"a8a9bde5f8291a21389a\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487920.157,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 111.8,
+      "conditional_headers": {
+        "If-None-Match": "\"56da89badfc90ff5afaf\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487920.277,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 108.8,
+      "conditional_headers": {
+        "If-None-Match": "\"11876cdecc46e5bf8fde\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487920.398,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 112.5,
+      "conditional_headers": {
+        "If-None-Match": "\"865db7feaabb3030bf58\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487920.524,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 111.6,
+      "conditional_headers": {
+        "If-None-Match": "\"bda2bbbffe840c842ae4\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:54 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    }
+  ],
+  "blocked_candidates": [
+    {
+      "url": "https://example.invalid/offsite",
+      "where": "detail link on http://127.0.0.1:8811/notices",
+      "reason": "origin_not_allowed"
+    },
+    {
+      "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+      "where": "detail link on http://127.0.0.1:8811/notices",
+      "reason": "robots_disallowed"
+    }
+  ],
+  "seed_urls": [
+    "http://127.0.0.1:8811/notices",
+    "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+    "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "_comment": "Mutable scenario state for both simulators. Edited by archive_pipeline.simctl, read live by the servers.",
+  "sites": {
+    "layout_a": {
+      "page_size": 2,
+      "extra_pages": 0,
+      "pagination_loop": false,
+      "nav_version": 2,
+      "footer_version": 2,
+      "tracking_links": true,
+      "extra_links": [
+        {
+          "href": "/notices/same-url/A-1001?sort=asc&view=full&utm_source=x&utm_medium=y#section-2",
+          "label": "A-1001 摘要视图（同文档：业务参数顺序不同 + 追踪参数 + fragment）",
+          "kind": "equivalent"
+        },
+        {
+          "href": "notices/public-edition/A-1002?edition=public&utm_campaign=public",
+          "label": "A-1002 公众版（业务参数 edition=public，属不同文档）",
+          "kind": "business_param"
+        },
+        {
+          "href": "https://example.invalid/offsite",
+          "label": "站外链接（不得请求）",
+          "kind": "offsite"
+        },
+        {
+          "href": "/notices/draft-notes/D-77",
+          "label": "D-77 草稿（被 robots 禁止抓取）",
+          "kind": "robots"
+        }
+      ],
+      "notices": [
+        {
+          "key": "A-1001",
+          "slug": "same-url",
+          "title": "关于启动公共数据共享试点的通告",
+          "issued": "2026-03-02",
+          "paragraphs": [
+            "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期延长为两年。",
+            "试点单位应当按照最小必要原则收集数据，并定期公开共享目录。",
+            "新增：试点评估报告于每季度末发布。"
+          ],
+          "available": true
+        },
+        {
+          "key": "A-1002",
+          "slug": "public-edition",
+          "title": "关于发布年度研究报告的通知",
+          "issued": "2026-02-18",
+          "paragraphs": [
+            "《年度研究报告（2026）》现已发布，内容涵盖公共研究经费使用情况。",
+            "报告全文可在本平台资料栏查阅。"
+          ],
+          "public_edition": {
+            "key": "A-1002P",
+            "title": "关于发布年度研究报告（公众版）的通知",
+            "issued": "2026-02-18",
+            "paragraphs": [
+              "公众版摘编已发布，与完整版在披露范围上存在差异。",
+              "公众版由平台编辑委员会审定。"
+            ]
+          },
+          "available": true
+        },
+        {
+          "key": "A-1003",
+          "slug": "crossed-canonical",
+          "title": "关于开展研究方法培训的通告",
+          "issued": "2026-01-22",
+          "paragraphs": [
+            "培训面向公共研究机构工作人员，分三期开展。",
+            "报名方式详见附件。"
+          ],
+          "available": true,
+          "canonical_host": "https://mirror.example.net"
+        },
+        {
+          "key": "A-1044",
+          "slug": "retractable",
+          "title": "关于废止某临时性统计口径的通告",
+          "issued": "2026-01-08",
+          "paragraphs": [
+            "原临时性统计口径自本通告发布之日起废止。",
+            "相关数据按新口径重新汇总。"
+          ],
+          "available": true
+        },
+        {
+          "key": "A-1055",
+          "slug": "temporary",
+          "title": "关于维护期间暂停服务的通告",
+          "issued": "2026-01-03",
+          "paragraphs": [
+            "为配合系统维护，平台将于本周六暂停服务六小时。",
+            "维护完成后将发布恢复通知。"
+          ],
+          "available": true,
+          "status_override": null
+        }
+      ],
+      "robots_embargo_page": null
+    },
+    "layout_b": {
+      "page_size": 2,
+      "extra_pages": 1,
+      "pagination_loop": false,
+      "nav_version": 2,
+      "footer_version": 2,
+      "tracking_links": true,
+      "extra_links": [
+        {
+          "href": "n/water-quality?ref=feed&b=2&a=1#top",
+          "label": "Same notice via relative short link (tracking param, unsorted business query, fragment)",
+          "kind": "equivalent"
+        },
+        {
+          "href": "https://example.invalid/escape",
+          "label": "Off-site link (must not be fetched)",
+          "kind": "offsite"
+        },
+        {
+          "href": "/internal/ops/B-2003",
+          "label": "B-2003 internal copy (robots-disallowed)",
+          "kind": "robots"
+        }
+      ],
+      "notices": [
+        {
+          "key": "B-2001",
+          "slug": "water-quality",
+          "title": "Water quality monitoring programme notice (revised)",
+          "issued": "2026-03-11",
+          "paragraphs": [
+            "The programme will sample 40 municipal sites each quarter.",
+            "Results are published in the open data portal."
+          ]
+        },
+        {
+          "key": "B-2002",
+          "slug": "grant-round",
+          "title": "Research grant round 2 open call",
+          "issued": "2026-02-25",
+          "paragraphs": [
+            "Applications close on 30 April 2026.",
+            "Eligible institutions may submit one proposal per call."
+          ]
+        },
+        {
+          "key": "B-2003",
+          "slug": "ethics-guidance",
+          "title": "Updated ethics guidance for field studies",
+          "issued": "2026-02-09",
+          "paragraphs": [
+            "The guidance replaces the 2023 edition with immediate effect.",
+            "Field teams must file an updated protocol summary."
+          ]
+        },
+        {
+          "key": "B-2004",
+          "slug": "offsite-hop",
+          "title": "Notice with an external redirect",
+          "issued": "2026-01-30",
+          "paragraphs": [
+            "This record points at an external service.",
+            "Archivers must not follow the external target."
+          ],
+          "redirect_to": "https://outside.example.org/notices/B-2004"
+        },
+        {
+          "key": "B-2005",
+          "slug": "flaky",
+          "title": "Notice under maintenance",
+          "issued": "2026-01-14",
+          "paragraphs": [
+            "The underlying service is being migrated.",
+            "Expect intermittent availability during the transition."
+          ]
+        }
+      ],
+      "loop_target_page": 2
+    }
+  }
+}

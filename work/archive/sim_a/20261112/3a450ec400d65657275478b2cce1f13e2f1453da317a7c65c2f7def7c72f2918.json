@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "3a450ec400d65657275478b2cce1f13e2f1453da317a7c65c2f7def7c72f2918",
+  "bytes": 1085,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+  "final_url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"3a450ec400d656572754\"",
+  "last_modified": "Thu, 12 Nov 2026 12:52:06 GMT",
+  "scan_id": 9,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:52:06.070859+00:00",
+  "storage": "identity"
+}

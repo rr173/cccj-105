@@ -1,0 +1,14 @@
+[
+  {
+    "scan_id": 7,
+    "version_no": 2,
+    "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+    "paragraphs_added": [
+      "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期延长为两年。",
+      "新增：试点评估报告于每季度末发布。"
+    ],
+    "paragraphs_removed": [
+      "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期为一年。"
+    ]
+  }
+]

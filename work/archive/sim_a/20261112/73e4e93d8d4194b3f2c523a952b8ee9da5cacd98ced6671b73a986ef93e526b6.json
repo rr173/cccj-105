@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "73e4e93d8d4194b3f2c523a952b8ee9da5cacd98ced6671b73a986ef93e526b6",
+  "bytes": 2025,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices",
+  "final_url": "http://127.0.0.1:8811/notices",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"73e4e93d8d4194b3f2c5\"",
+  "last_modified": "Thu, 12 Nov 2026 12:51:53 GMT",
+  "scan_id": 1,
+  "kind": "directory",
+  "fetched_at": "2026-11-12T12:51:53.883917+00:00",
+  "storage": "identity"
+}

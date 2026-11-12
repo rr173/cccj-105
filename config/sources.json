@@ -1,0 +1,46 @@
+{
+  "user_agent": "archive-bot/0.1 (+research-archive)",
+  "archive_dir": "../archive",
+  "sources": [
+    {
+      "source_id": "sim_a",
+      "display_name": "Public Research Notices — Layout A",
+      "base_url": "http://127.0.0.1:8811",
+      "entry_point": "http://127.0.0.1:8811/notices",
+      "adapter": "layout_a",
+      "allowed_origins": ["http://127.0.0.1:8811"],
+      "tracking_params": [
+        "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+        "gclid", "fbclid", "ref", "spm"
+      ],
+      "min_interval_ms": 120,
+      "robots_unavailable_policy": "disallow_all",
+      "directory_pattern": "^/notices(?:/page/[0-9]+)?$",
+      "detail_pattern": "^/notices/[^/]+/[A-Za-z0-9\\-]+$",
+      "max_pages_per_scan": 50,
+      "max_redirects": 3,
+      "timeout_seconds": 5,
+      "max_response_bytes": 2000000
+    },
+    {
+      "source_id": "sim_b",
+      "display_name": "Public Research Notices — Layout B",
+      "base_url": "http://127.0.0.1:8812",
+      "entry_point": "http://127.0.0.1:8812/feed",
+      "adapter": "layout_b",
+      "allowed_origins": ["http://127.0.0.1:8812"],
+      "tracking_params": [
+        "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
+        "gclid", "fbclid", "ref", "spm"
+      ],
+      "min_interval_ms": 120,
+      "robots_unavailable_policy": "disallow_all",
+      "directory_pattern": "^/feed$",
+      "detail_pattern": "^/(?:n|archive)/[^/]+(?:/[A-Za-z0-9\\-]+)?$",
+      "max_pages_per_scan": 50,
+      "max_redirects": 3,
+      "timeout_seconds": 5,
+      "max_response_bytes": 2000000
+    }
+  ]
+}

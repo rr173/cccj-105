@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+  "bytes": 894,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+  "final_url": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"30647a947bd0613d816b\"",
+  "last_modified": "Thu, 12 Nov 2026 12:51:56 GMT",
+  "scan_id": 2,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:51:56.090384+00:00",
+  "storage": "identity"
+}

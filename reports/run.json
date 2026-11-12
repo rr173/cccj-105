@@ -1,0 +1,4574 @@
+{
+  "generated_at": "2026-11-12T12:52:18",
+  "steps": [
+    {
+      "title": "基线扫描：建立首个版本与请求清单",
+      "explanation": "两站各自完整扫描。A 站目录链接带业务参数 `sort=asc&view=full` 与追踪参数；B 站目录使用相对短链 `n/<slug>?b=2&a=1&utm_*`，服务器以 302 跳到长地址。所有详情均解析为统一字段 `source/document_key/title/issued_on/body/canonical_url`。",
+      "scan_ids": [
+        1,
+        2
+      ],
+      "data": {}
+    },
+    {
+      "title": "等价链接归一、保留业务参数、站外与 robots 拦截",
+      "explanation": "归一化只删除配置内的追踪键、排序剩余参数并去掉 fragment；不同业务参数（`edition=public`）不合并。站外链接与 robots 禁止路径均未产生 HTTP 请求（清单中 `requested=false`）。`rel=canonical` 指向站外主机时只记录、不跟随请求；服务器日志交叉核验证明了实际到达的路径集合。",
+      "scan_ids": [
+        1,
+        2
+      ],
+      "data": {
+        "equivalent": [
+          {
+            "equivalent_count": 1,
+            "detail_urls": [
+              "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full"
+            ],
+            "note": "目录同时出现 A-1001 的两种等价写法（排序不同+追踪参数+fragment）；frontier 只保留一条并只请求一次。"
+          }
+        ],
+        "business_parameter": [
+          {
+            "detail_urls": [
+              "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+            ],
+            "note": "`edition=public` 不在 tracking_params 中，因此保留为不同frontier 键并分别生成文档 A-1002 与 A-1002P。",
+            "document_keys": [
+              "A-1002P"
+            ]
+          }
+        ],
+        "offsite_refused": [
+          {
+            "url": "https://example.invalid/offsite",
+            "where": "detail link on http://127.0.0.1:8811/notices",
+            "reason": "origin_not_allowed"
+          }
+        ],
+        "robots_refused": [
+          {
+            "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+            "where": "detail link on http://127.0.0.1:8811/notices",
+            "reason": "robots_disallowed"
+          }
+        ],
+        "offsite_canonical": [
+          {
+            "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "canonical_url": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+            "canonical_blocked": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+            "requested": false
+          }
+        ],
+        "redirects": [],
+        "server_side_audit": {
+          "layout_a": {
+            "requests_served": 10,
+            "unique_paths": [
+              "/notices",
+              "/notices/crossed-canonical/A-1003?sort=asc&view=full",
+              "/notices/page/2?sort=asc&view=list",
+              "/notices/page/3?sort=asc&view=list",
+              "/notices/public-edition/A-1002?edition=public",
+              "/notices/public-edition/A-1002?sort=asc&view=full",
+              "/notices/retractable/A-1044?sort=asc&view=full",
+              "/notices/same-url/A-1001?sort=asc&view=full",
+              "/notices/temporary/A-1055?sort=asc&view=full",
+              "/robots.txt"
+            ],
+            "non_local_paths": []
+          },
+          "layout_b": {
+            "requests_served": 15,
+            "unique_paths": [
+              "/archive/ethics-guidance/B-2003?a=1&b=2",
+              "/archive/flaky/B-2005?a=1&b=2",
+              "/archive/grant-round/B-2002?a=1&b=2",
+              "/archive/offsite-hop/B-2004?a=1&b=2",
+              "/archive/water-quality/B-2001?a=1&b=2",
+              "/feed",
+              "/feed?page=2&sort=asc&view=list",
+              "/feed?page=3&sort=asc&view=list",
+              "/feed?page=4&sort=asc&view=list",
+              "/n/ethics-guidance?a=1&b=2",
+              "/n/flaky?a=1&b=2",
+              "/n/grant-round?a=1&b=2",
+              "/n/offsite-hop?a=1&b=2",
+              "/n/water-quality?a=1&b=2",
+              "/robots.txt"
+            ],
+            "non_local_paths": []
+          }
+        }
+      }
+    },
+    {
+      "title": "第二轮扫描：条件抓取与 304",
+      "explanation": "详情请求携带上一轮的 `If-None-Match` / `If-Modified-Since`，服务器返回 304。304 不生成版本、不把正文当作空、复用既有版本；304 的空响应体仍按摘要归档（sha256 e3b0c442…）。",
+      "scan_ids": [
+        3,
+        4
+      ],
+      "data": {
+        "not_modified": [
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+            "status": 304,
+            "version": 1,
+            "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived"
+          }
+        ]
+      }
+    },
+    {
+      "title": "第三轮扫描：仅页脚变化 → 不生成版本",
+      "explanation": "两站只改页脚（A 增加帮助/关于链接，B 增加 status 链接），正文、标题、日期全部不变。下面的证据表明：原始字节摘要变了（raw_bytes_changed=true），业务摘要不变，因此 `version_created=false`，版本号沿用。",
+      "scan_ids": [
+        5,
+        6
+      ],
+      "data": {
+        "footer_only": [
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "raw_digest": "e33ad6f872f3",
+            "previous_raw_digest": "c790ae5b23aa",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "raw_digest": "a9073509dfd6",
+            "previous_raw_digest": "a8a9bde5f829",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+            "raw_digest": "8cfbde96e72b",
+            "previous_raw_digest": "56da89badfc9",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "raw_digest": "26c6c2a1f4f7",
+            "previous_raw_digest": "11876cdecc46",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+            "raw_digest": "c9db92614755",
+            "previous_raw_digest": "865db7feaabb",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+            "raw_digest": "9e7246d50804",
+            "previous_raw_digest": "bda2bbbffe84",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "raw_digest": "21f7594a767a",
+            "previous_raw_digest": "5a51be24b44d",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "raw_digest": "fb93da8b665a",
+            "previous_raw_digest": "f48ee071152a",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "raw_digest": "c337696ad839",
+            "previous_raw_digest": "30647a947bd0",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+            "raw_digest": "30d56a00eed6",
+            "previous_raw_digest": "a08972ffc6ce",
+            "raw_bytes_changed": true,
+            "version_created": false,
+            "reason": "business_fields_unchanged"
+          }
+        ]
+      }
+    },
+    {
+      "title": "第四轮扫描：正文与标题业务变更 → 生成新版本",
+      "explanation": "A-1001 正文修改并新增段落；B-2001 标题修改。两者均产生新版本，段落级差异写入 diffs/。注意：A 站页脚仍为第二版（与上一轮相同），因此这些版本由业务字段而非页脚触发。",
+      "scan_ids": [
+        7,
+        8
+      ],
+      "data": {
+        "new_versions": [
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "document": "A-1001",
+            "version": 2,
+            "created": true,
+            "reason": "business_fields_changed:body",
+            "diff": {
+              "paragraphs_added": [
+                "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期延长为两年。",
+                "新增：试点评估报告于每季度末发布。"
+              ],
+              "paragraphs_removed": [
+                "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期为一年。"
+              ]
+            }
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "document": "B-2001",
+            "version": 2,
+            "created": true,
+            "reason": "business_fields_changed:title",
+            "diff": {
+              "paragraphs_added": [],
+              "paragraphs_removed": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "title": "第五轮扫描：仅导航变化 → 不生成版本",
+      "explanation": "两站导航条新增链接，页脚保持上一轮版本。原始摘要再次变化，业务摘要不变，版本数保持不变。",
+      "scan_ids": [
+        9,
+        10
+      ],
+      "data": {
+        "navigation_only": [
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_a",
+            "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          },
+          {
+            "source": "sim_b",
+            "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+            "raw_bytes_changed": true,
+            "created": false,
+            "reason": "business_fields_unchanged"
+          }
+        ]
+      }
+    },
+    {
+      "title": "第六轮扫描：robots 禁抓目录页 → 不请求并声明不完整",
+      "explanation": "A 站 robots.txt 将 `/notices/page/3?` 列为 Disallow（精确路径，`?` 不匹配额外查询参数）。第 2 页的 rel=next 指向第 3 页，但该 URL 在发出请求前即被拒绝（清单中 `requested=false`）。遍历无法到达目录末尾，扫描标记 `complete=false` / `paging_blocked`，而不是把缺失页当作不存在。",
+      "scan_ids": [
+        11
+      ],
+      "data": {
+        "stop_reason": "paging_blocked: next directory page http://127.0.0.1:8811/notices/page/3?sort=asc&view=list was refused (out of scope or robots-disallowed)",
+        "complete": false,
+        "pages": [
+          {
+            "page_no": 1,
+            "url": "http://127.0.0.1:8811/notices",
+            "outcome": "ok",
+            "next": [
+              "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+            ],
+            "details": [
+              "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+              "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+              "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+              "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+            ]
+          },
+          {
+            "page_no": 2,
+            "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+            "outcome": "ok",
+            "next": [
+              "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+            ],
+            "details": [
+              "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+              "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+            ]
+          }
+        ],
+        "refused": [
+          {
+            "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+            "where": "next link on http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+            "reason": "robots_disallowed"
+          }
+        ],
+        "robots_rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/page/3?"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "title": "第七轮扫描：目录分页环 → 终止并报告不完整",
+      "explanation": "B 站第 2 页的 rel=next 指回自身。遍历识别到环后立即终止，不重复请求该页；扫描标记 `paging_loop=true` / `complete=false`，并声明目录集合不完整。",
+      "scan_ids": [
+        12
+      ],
+      "data": {
+        "pages": [
+          {
+            "page_no": 1,
+            "url": "http://127.0.0.1:8812/feed",
+            "outcome": "ok",
+            "next": [
+              "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+            ],
+            "details": [
+              "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+              "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+              "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+            ]
+          },
+          {
+            "page_no": 2,
+            "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+            "outcome": "ok",
+            "next": [
+              "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+            ],
+            "details": [
+              "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+              "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+            ]
+          }
+        ],
+        "stop_reason": "paging_loop: page http://127.0.0.1:8812/feed?page=2&sort=asc&view=list (page 2) links next to already visited directory http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+        "complete": false
+      }
+    },
+    {
+      "title": "第八轮扫描：临时 503",
+      "explanation": "A-1055 返回 503。该扫描 `complete=false`；503 不推进 404 缺失计数，不生成版本。A-1055 文档状态保持原样（无缺失计数）。",
+      "scan_ids": [
+        13
+      ],
+      "data": {
+        "stop_reason": "detail_http_503",
+        "details": [
+          {
+            "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+            "outcome": "server_error",
+            "http_status": 503,
+            "document_key": null,
+            "version_created": false,
+            "version_no": 0,
+            "version_reason": "",
+            "redirected_to": null,
+            "canonical_url": null,
+            "canonical_blocked": null,
+            "raw_digest": "74e1209164947eda50230af14280c0f42c45ffbc788247cc3076b348eec0bbde",
+            "previous_raw_digest": null,
+            "raw_bytes_changed": false,
+            "note": "HTTP 503; not counted as a miss, no version written. This scan is incomplete and does not count as a round",
+            "diff": null
+          }
+        ],
+        "document_state": {
+          "source_id": "sim_a",
+          "document_key": "A-1055",
+          "state": "active",
+          "retracted_at": null,
+          "retracted_scan": null,
+          "missing_streak": 0,
+          "previous_state": null,
+          "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+        }
+      }
+    },
+    {
+      "title": "第九轮扫描：首次 404 → 只标记暂不可达",
+      "explanation": "A-1044 首次 404，仅 `temporarily_unreachable`，缺失计数 1，不撤稿；该扫描完整，因此可作为证据轮次。",
+      "scan_ids": [
+        14
+      ],
+      "data": {
+        "document_state": {
+          "source_id": "sim_a",
+          "document_key": "A-1044",
+          "state": "temporarily_unreachable",
+          "retracted_at": null,
+          "retracted_scan": null,
+          "missing_streak": 1,
+          "previous_state": "active",
+          "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+        },
+        "detail": [
+          {
+            "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+            "outcome": "not_found",
+            "http_status": 404,
+            "document_key": "A-1044",
+            "version_created": false,
+            "version_no": 0,
+            "version_reason": "",
+            "redirected_to": null,
+            "canonical_url": null,
+            "canonical_blocked": null,
+            "raw_digest": "d7ba4f4eb62c4b494a9e5fe83d86189263909c294943bbea7014dfa7b946adbb",
+            "previous_raw_digest": null,
+            "raw_bytes_changed": false,
+            "note": "HTTP 404; URL miss counter 1. Remains temporarily_unreachable until two consecutive complete scans observe 404",
+            "diff": null
+          }
+        ]
+      }
+    },
+    {
+      "title": "第十轮扫描：撤稿证据链的干扰项",
+      "explanation": "A-1044 恢复（缺失计数清零、状态回到 active）；A-1055 首次 404。说明只有相邻两轮完整扫描的 404 才构成撤稿证据。",
+      "scan_ids": [
+        15
+      ],
+      "data": {
+        "A-1044": {
+          "source_id": "sim_a",
+          "document_key": "A-1044",
+          "state": "active",
+          "retracted_at": null,
+          "retracted_scan": null,
+          "missing_streak": 0,
+          "previous_state": "active",
+          "last_url_key": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+        },
+        "A-1055": {
+          "source_id": "sim_a",
+          "document_key": "A-1055",
+          "state": "temporarily_unreachable",
+          "retracted_at": null,
+          "retracted_scan": null,
+          "missing_streak": 1,
+          "previous_state": "active",
+          "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+        }
+      }
+    },
+    {
+      "title": "第十一轮扫描：连续两轮完整扫描 404 → 撤稿",
+      "explanation": "A-1055 在第八轮（完整）与本轮（完整）均 404，两轮相邻且都完整，标记 `with_retracted`。历史版本保留可读，撤稿是状态变化而非删除。",
+      "scan_ids": [
+        16
+      ],
+      "data": {
+        "A-1055": {
+          "source_id": "sim_a",
+          "document_key": "A-1055",
+          "state": "with_retracted",
+          "retracted_at": "2026-11-12T12:52:14+00:00",
+          "retracted_scan": 16,
+          "missing_streak": 2,
+          "previous_state": "active",
+          "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+        },
+        "verdicts": [
+          {
+            "document_key": "A-1055",
+            "current_scan_id": 16,
+            "previous_complete_scan_id": 15,
+            "skipped_incomplete_scans": [
+              11,
+              13
+            ],
+            "current_misses": [
+              "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+            ],
+            "previous_complete_misses": [
+              "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+            ],
+            "certified": true,
+            "archived_versions_preserved": 1,
+            "evidence": "two consecutive complete rounds (15, 16) both observed HTTP 404"
+          }
+        ]
+      }
+    },
+    {
+      "title": "第十二轮扫描：503 不构成轮次",
+      "explanation": "A-1055 返回 503，扫描不完整。即便此前已有撤稿证据，这一轮也不能作为新的确认轮；A-1044 的同轮缺失计数同样不被推进。",
+      "scan_ids": [
+        17
+      ],
+      "data": {
+        "scan": {
+          "complete": false,
+          "stop_reason": "detail_http_503",
+          "retraction_verdicts": []
+        },
+        "A-1055": {
+          "source_id": "sim_a",
+          "document_key": "A-1055",
+          "state": "with_retracted",
+          "retracted_at": "2026-11-12T12:52:14+00:00",
+          "retracted_scan": 16,
+          "missing_streak": 2,
+          "previous_state": "active",
+          "last_url_key": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+        }
+      }
+    },
+    {
+      "title": "第十三轮扫描：中断后重启接续",
+      "explanation": "B 站扫描在请求完 2 个详情后被强制中断；frontier 中保留 pending 行。随后用全新引擎实例重启，检测到 pending URL 并完成剩余请求，最终扫描 complete=true 且不再遗留 pending。",
+      "scan_ids": [
+        18,
+        19
+      ],
+      "data": {
+        "interrupted_scan_id": 18,
+        "interrupted_status": "abandoned",
+        "pending_after_interrupt": [
+          "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+        ],
+        "resumed_scan_id": 19,
+        "resumed_urls": [
+          "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+        ],
+        "resumed_complete": true,
+        "pending_after_resume": [
+          "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+        ],
+        "documents_versions": {
+          "B-2001": 2,
+          "B-2002": 1,
+          "B-2003": 1,
+          "B-2005": 1
+        }
+      }
+    }
+  ],
+  "scans": {
+    "1": {
+      "scan_id": 1,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1001",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/same-url/A-1001",
+          "canonical_blocked": null,
+          "raw_digest": "c790ae5b23aaae91e05401a1c8ed653ab816ae2419ac01c73cb9cf28b2d6c682",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002",
+          "canonical_blocked": null,
+          "raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002P",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002P",
+          "canonical_blocked": null,
+          "raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1003",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "canonical_blocked": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1044",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/retractable/A-1044",
+          "canonical_blocked": null,
+          "raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1055",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/temporary/A-1055",
+          "canonical_blocked": null,
+          "raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-1.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "2": {
+      "scan_id": 2,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 4,
+          "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": []
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2001",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "5a51be24b44d96ddf7198740ca8bd16712e28062423f13258d1648e754a1118b",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2002",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2003",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2005",
+          "version_created": true,
+          "version_no": 1,
+          "version_reason": "first_observation",
+          "redirected_to": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "first version for this document",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/n/water-quality?a=1&b=2; requesting it once",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-2.json",
+      "request_count": 15,
+      "refused_count": 1
+    },
+    "3": {
+      "scan_id": 3,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "c790ae5b23aaae91e05401a1c8ed653ab816ae2419ac01c73cb9cf28b2d6c682",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-3.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "4": {
+      "scan_id": 4,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 4,
+          "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": []
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2001",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "5a51be24b44d96ddf7198740ca8bd16712e28062423f13258d1648e754a1118b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2005",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-4.json",
+      "request_count": 15,
+      "refused_count": 1
+    },
+    "5": {
+      "scan_id": 5,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/same-url/A-1001",
+          "canonical_blocked": null,
+          "raw_digest": "e33ad6f872f314d071a6ddf9fdf2871de848fab1a8a3985cbd3625f807322ca3",
+          "previous_raw_digest": "c790ae5b23aaae91e05401a1c8ed653ab816ae2419ac01c73cb9cf28b2d6c682",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (e33ad6f872f3… vs c790ae5b23aa…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002",
+          "canonical_blocked": null,
+          "raw_digest": "a9073509dfd64998513bf6e871d9ec52a177c693a5a4c37e8757d1dff3770eb0",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (a9073509dfd6… vs a8a9bde5f829…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002P",
+          "canonical_blocked": null,
+          "raw_digest": "8cfbde96e72be1487e0368a0899f4e539aa348790588d5aaefc7896468d9cb71",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (8cfbde96e72b… vs 56da89badfc9…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "canonical_blocked": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "raw_digest": "26c6c2a1f4f77bee37c50f9845f257bbc972912dcdf7b2cce15c3a81b82bf832",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (26c6c2a1f4f7… vs 11876cdecc46…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/retractable/A-1044",
+          "canonical_blocked": null,
+          "raw_digest": "c9db926147552c7f2a00ee2d684baa1160fb19ff7a3e067568edbc459e19de16",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (c9db92614755… vs 865db7feaabb…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/temporary/A-1055",
+          "canonical_blocked": null,
+          "raw_digest": "9e7246d50804f788cc736cc9d71585ecd18d64e1bec07567313af0fda0bf3cb9",
+          "previous_raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (9e7246d50804… vs bda2bbbffe84…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-5.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "6": {
+      "scan_id": 6,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 4,
+          "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": []
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2001",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "21f7594a767a5255a6bd3638c6c668721bbbd82d4d96b2cf10831625292e3534",
+          "previous_raw_digest": "5a51be24b44d96ddf7198740ca8bd16712e28062423f13258d1648e754a1118b",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (21f7594a767a… vs 5a51be24b44d…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "fb93da8b665aa43d69bb453409c23ccf715e6516cf5689e2b55f949e6c3d9137",
+          "previous_raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (fb93da8b665a… vs f48ee071152a…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "c337696ad83942bc16b86da1cff089458eb5876cf9eb5268886bec80ac12034d",
+          "previous_raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (c337696ad839… vs 30647a947bd0…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2005",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "30d56a00eed62c904cb7f5b9207dd2fa283a9ec473f7d4a8a16f32758d143d06",
+          "previous_raw_digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (30d56a00eed6… vs a08972ffc6ce…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-6.json",
+      "request_count": 15,
+      "refused_count": 1
+    },
+    "7": {
+      "scan_id": 7,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1001",
+          "version_created": true,
+          "version_no": 2,
+          "version_reason": "business_fields_changed:body",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/same-url/A-1001",
+          "canonical_blocked": null,
+          "raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "previous_raw_digest": "c790ae5b23aaae91e05401a1c8ed653ab816ae2419ac01c73cb9cf28b2d6c682",
+          "raw_bytes_changed": true,
+          "note": "business fields changed (body) -> version 2",
+          "diff": {
+            "paragraphs_added": [
+              "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期延长为两年。",
+              "新增：试点评估报告于每季度末发布。"
+            ],
+            "paragraphs_removed": [
+              "经研究决定，自本通告发布之日起启动公共数据共享试点，试点期为一年。"
+            ]
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-7.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "8": {
+      "scan_id": 8,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 4,
+          "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": []
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2001",
+          "version_created": true,
+          "version_no": 2,
+          "version_reason": "business_fields_changed:title",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "f3c247be88556a4a140ebdd63185cc082fa356d19f81298a508e4e75524db553",
+          "previous_raw_digest": "5a51be24b44d96ddf7198740ca8bd16712e28062423f13258d1648e754a1118b",
+          "raw_bytes_changed": true,
+          "note": "business fields changed (title) -> version 2",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2005",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-8.json",
+      "request_count": 15,
+      "refused_count": 1
+    },
+    "9": {
+      "scan_id": 9,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/same-url/A-1001",
+          "canonical_blocked": null,
+          "raw_digest": "2d39d4b2c2e0485096dcb849a2121bfd1a49fff22b6ae0a3ba1357211fbd4c21",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (2d39d4b2c2e0… vs 44f1226d4966…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002",
+          "canonical_blocked": null,
+          "raw_digest": "7640801bca08d5a6a9f3ca5c31664abeeefcf340b6595365aded61860ad62627",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (7640801bca08… vs a8a9bde5f829…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/public-edition/A-1002P",
+          "canonical_blocked": null,
+          "raw_digest": "3b36c5579e4840bb2348effa26169c0459fff418243cd7ae4fa459a1064adcb7",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (3b36c5579e48… vs 56da89badfc9…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "canonical_blocked": "https://mirror.example.net/notices/crossed-canonical/A-1003",
+          "raw_digest": "33db3b5f016812de6035da8be8677558b7b8f418b963a3ef38821cd854c42923",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (33db3b5f0168… vs 11876cdecc46…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/retractable/A-1044",
+          "canonical_blocked": null,
+          "raw_digest": "3a450ec400d65657275478b2cce1f13e2f1453da317a7c65c2f7def7c72f2918",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (3a450ec400d6… vs 865db7feaabb…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": null,
+          "canonical_url": "http://127.0.0.1:8811/notices/temporary/A-1055",
+          "canonical_blocked": null,
+          "raw_digest": "a79b2aef58a2d1dfab09fb8e56c2d4fc0454ff6eece1e63782cfce44cee382ce",
+          "previous_raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (a79b2aef58a2… vs bda2bbbffe84…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full: canonical https://mirror.example.net/notices/crossed-canonical/A-1003 is off-origin; recorded but never requested"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-9.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "10": {
+      "scan_id": 10,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/flaky?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 4,
+          "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": []
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "934c26afe9a6b617065baf430865ccae610b7a9d8700147a8962d9641d20abcb",
+          "previous_raw_digest": "f3c247be88556a4a140ebdd63185cc082fa356d19f81298a508e4e75524db553",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (934c26afe9a6… vs f3c247be8855…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "370b13ede25c493896715cc06345d5f0ec8a13667f925c94b73e6524d140c9d3",
+          "previous_raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (370b13ede25c… vs f48ee071152a…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e22cd6e5b608d743597cadad7930c425a7b1fd6e36a02523587c9a0599928935",
+          "previous_raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (e22cd6e5b608… vs 30647a947bd0…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+          "outcome": "ok",
+          "http_status": 200,
+          "document_key": "B-2005",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "business_fields_unchanged",
+          "redirected_to": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "62c3188944bd54d44018d9fe58aa93cea047f42c85fa401ff588a5511222381a",
+          "previous_raw_digest": "a08972ffc6cee4bba94eca4e7ad74aaa4b983da9857686e24af82089a601c9be",
+          "raw_bytes_changed": true,
+          "note": "business fields identical; raw bytes changed (62c3188944bd… vs a08972ffc6ce…) — navigation/footer/markup edit, no version created",
+          "diff": {
+            "paragraphs_added": [],
+            "paragraphs_removed": []
+          }
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/flaky?a=1&b=2 -> http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2 (in-scope target, followed)"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-10.json",
+      "request_count": 15,
+      "refused_count": 1
+    },
+    "11": {
+      "scan_id": 11,
+      "source_id": "sim_a",
+      "complete": false,
+      "paging_loop": false,
+      "stop_reason": "paging_blocked: next directory page http://127.0.0.1:8811/notices/page/3?sort=asc&view=list was refused (out of scope or robots-disallowed)",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/page/3?"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "where": "next link on http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "next link on http://127.0.0.1:8811/notices/page/2?sort=asc&view=list: http://127.0.0.1:8811/notices/page/3?sort=asc&view=list disallowed by robots.txt; no request made",
+        "paging_blocked: next directory page http://127.0.0.1:8811/notices/page/3?sort=asc&view=list was refused (out of scope or robots-disallowed)",
+        "unvisited directory successors remain; the listing of this scan is incomplete",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "scan incomplete: no 404 in this scan can count toward withdrawal; documents remain temporarily_unreachable at most"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-11.json",
+      "request_count": 8,
+      "refused_count": 0
+    },
+    "12": {
+      "scan_id": 12,
+      "source_id": "sim_b",
+      "complete": false,
+      "paging_loop": true,
+      "stop_reason": "paging_loop: page http://127.0.0.1:8812/feed?page=2&sort=asc&view=list (page 2) links next to already visited directory http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8812/feed",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+            "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+            "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+            "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8812/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "archive-bot"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/feed*sort=desc"
+              },
+              {
+                "allow": true,
+                "pattern": "/feed"
+              },
+              {
+                "allow": true,
+                "pattern": "/n/"
+              },
+              {
+                "allow": true,
+                "pattern": "/archive/"
+              },
+              {
+                "allow": false,
+                "pattern": "/internal/"
+              }
+            ]
+          },
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": null
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "f3c247be88556a4a140ebdd63185cc082fa356d19f81298a508e4e75524db553",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "f48ee071152af4aa0627eecefe3b560647129497d4fddecfa372c79135a89bb9",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "B-2003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "30647a947bd0613d816bbfe5240d5fbd08be5ab91f149967822609d6c210f00f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "outcome": "redirect_blocked",
+          "http_status": null,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": null,
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2 -> https://outside.example.org/notices/B-2004: redirect target outside allowed origins",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/escape",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+          "where": "detail link on http://127.0.0.1:8812/feed",
+          "reason": "robots_disallowed"
+        },
+        {
+          "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+          "where": "detail",
+          "reason": "redirect_blocked"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8812/feed: refused off-origin URL https://example.invalid/escape; no request made",
+        "detail link on http://127.0.0.1:8812/feed: http://127.0.0.1:8812/internal/ops/B-2003 disallowed by robots.txt; no request made",
+        "paging_loop: page http://127.0.0.1:8812/feed?page=2&sort=asc&view=list (page 2) links next to already visited directory http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+        "walk terminated at the cycle without refetching; the directory set for this scan is incomplete",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "duplicate listing http://127.0.0.1:8812/n/water-quality?a=1&b=2 resolves to already queued http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "redirect 302: http://127.0.0.1:8812/n/water-quality?a=1&b=2 -> http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/grant-round?a=1&b=2 -> http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2 (in-scope target, followed)",
+        "redirect 302: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2 -> http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2 (in-scope target, followed)",
+        "scan incomplete: no 404 in this scan can count toward withdrawal; documents remain temporarily_unreachable at most"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-12.json",
+      "request_count": 11,
+      "refused_count": 1
+    },
+    "13": {
+      "scan_id": 13,
+      "source_id": "sim_a",
+      "complete": false,
+      "paging_loop": false,
+      "stop_reason": "detail_http_503",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "server_error",
+          "http_status": 503,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "74e1209164947eda50230af14280c0f42c45ffbc788247cc3076b348eec0bbde",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "HTTP 503; not counted as a miss, no version written. This scan is incomplete and does not count as a round",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full: HTTP 503; scan will be marked incomplete (503/transient errors do not advance the withdrawal counter)",
+        "scan incomplete: no 404 in this scan can count toward withdrawal; documents remain temporarily_unreachable at most"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-13.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "14": {
+      "scan_id": 14,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_found",
+          "http_status": 404,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "d7ba4f4eb62c4b494a9e5fe83d86189263909c294943bbea7014dfa7b946adbb",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "HTTP 404; URL miss counter 1. Remains temporarily_unreachable until two consecutive complete scans observe 404",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "bda2bbbffe840c842ae40c3e19c38dd86c554bb5dfaafce9c610428ca30dc7fe",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "document A-1044: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this document); remains temporarily_unreachable"
+      ],
+      "retraction_verdicts": [
+        {
+          "document_key": "A-1044",
+          "current_scan_id": 14,
+          "previous_complete_scan_id": 9,
+          "skipped_incomplete_scans": [
+            11,
+            13
+          ],
+          "current_misses": [
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ],
+          "previous_complete_misses": [],
+          "certified": false,
+          "reason": "the most recent complete round did not observe a 404 for this document"
+        }
+      ],
+      "request_manifest": "reports/requests/scan-14.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "15": {
+      "scan_id": 15,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived; document reactivated (was temporarily_unreachable)",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "not_found",
+          "http_status": 404,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "d7ba4f4eb62c4b494a9e5fe83d86189263909c294943bbea7014dfa7b946adbb",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "HTTP 404; URL miss counter 1. Remains temporarily_unreachable until two consecutive complete scans observe 404",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "document A-1055: 404 observed but withdrawal NOT certified (the most recent complete round did not observe a 404 for this document); remains temporarily_unreachable"
+      ],
+      "retraction_verdicts": [
+        {
+          "document_key": "A-1055",
+          "current_scan_id": 15,
+          "previous_complete_scan_id": 14,
+          "skipped_incomplete_scans": [
+            11,
+            13
+          ],
+          "current_misses": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ],
+          "previous_complete_misses": [],
+          "certified": false,
+          "reason": "the most recent complete round did not observe a 404 for this document"
+        }
+      ],
+      "request_manifest": "reports/requests/scan-15.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "16": {
+      "scan_id": 16,
+      "source_id": "sim_a",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "not_found",
+          "http_status": 404,
+          "document_key": "A-1055",
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "d7ba4f4eb62c4b494a9e5fe83d86189263909c294943bbea7014dfa7b946adbb",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "HTTP 404; URL miss counter 2. Remains temporarily_unreachable until two consecutive complete scans observe 404",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "document A-1055: RETRACTED — 404 in consecutive complete rounds 15 and 16; 1 archived version(s) remain readable"
+      ],
+      "retraction_verdicts": [
+        {
+          "document_key": "A-1055",
+          "current_scan_id": 16,
+          "previous_complete_scan_id": 15,
+          "skipped_incomplete_scans": [
+            11,
+            13
+          ],
+          "current_misses": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ],
+          "previous_complete_misses": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ],
+          "certified": true,
+          "archived_versions_preserved": 1,
+          "evidence": "two consecutive complete rounds (15, 16) both observed HTTP 404"
+        }
+      ],
+      "request_manifest": "reports/requests/scan-16.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "17": {
+      "scan_id": 17,
+      "source_id": "sim_a",
+      "complete": false,
+      "paging_loop": false,
+      "stop_reason": "detail_http_503",
+      "pages": [
+        {
+          "page_no": 1,
+          "url": "http://127.0.0.1:8811/notices",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+          ]
+        },
+        {
+          "page_no": 2,
+          "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [
+            "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+          ],
+          "details": [
+            "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+            "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full"
+          ]
+        },
+        {
+          "page_no": 3,
+          "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+          "outcome": "ok",
+          "next": [],
+          "details": [
+            "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full"
+          ]
+        }
+      ],
+      "robots": {
+        "url": "http://127.0.0.1:8811/robots.txt",
+        "available": true,
+        "status": "200",
+        "unavailable_policy": "disallow_all",
+        "supported_subset": "User-agent groups (specific product token overrides '*'); Allow/Disallow path prefixes with '*' wildcards and trailing '$' anchor; longest match wins, ties broken by Allow; rules matched against path?query; comments ignored; Crawl-delay parsed but NOT honored (min_interval_ms is used); Sitemap ignored; unavailable robots.txt handled by the configured policy (allow_all|disallow_all).",
+        "rules": [
+          {
+            "agents": [
+              "*"
+            ],
+            "rules": [
+              {
+                "allow": false,
+                "pattern": "/admin/"
+              },
+              {
+                "allow": false,
+                "pattern": "/private/"
+              },
+              {
+                "allow": false,
+                "pattern": "/notices/draft-notes"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/"
+              },
+              {
+                "allow": true,
+                "pattern": "/notices/page/"
+              }
+            ]
+          }
+        ],
+        "http_status": 200,
+        "crawl_delay": "2"
+      },
+      "details": [
+        {
+          "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1001",
+          "version_created": false,
+          "version_no": 2,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "44f1226d4966f3b131eac59ec49685f17a499704c4a85e12c74712e92723e87f",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 2; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "a8a9bde5f8291a21389a478e16e660ebc0bbee0e4a3f8abcdd536755493a0c8b",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1002P",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "56da89badfc90ff5afafc7502b3710fc894ea83ea11c3b6addf852c4a4416950",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1003",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "11876cdecc46e5bf8fde2c60ec86dc77e617146ad81fc206398d7f7c148d626e",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+          "outcome": "not_modified",
+          "http_status": 304,
+          "document_key": "A-1044",
+          "version_created": false,
+          "version_no": 1,
+          "version_reason": "http_304_reused_version",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "previous_raw_digest": "865db7feaabb3030bf58e47146123d86b658e5d88dbeef13e28f98a90a08cd3c",
+          "raw_bytes_changed": true,
+          "note": "HTTP 304: reused archived version 1; no version written; 304 body (0 bytes, sha256 e3b0c44298fc…) archived",
+          "diff": null
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+          "outcome": "server_error",
+          "http_status": 503,
+          "document_key": null,
+          "version_created": false,
+          "version_no": 0,
+          "version_reason": "",
+          "redirected_to": null,
+          "canonical_url": null,
+          "canonical_blocked": null,
+          "raw_digest": "74e1209164947eda50230af14280c0f42c45ffbc788247cc3076b348eec0bbde",
+          "previous_raw_digest": null,
+          "raw_bytes_changed": false,
+          "note": "HTTP 503; not counted as a miss, no version written. This scan is incomplete and does not count as a round",
+          "diff": null
+        }
+      ],
+      "blocked": [
+        {
+          "url": "https://example.invalid/offsite",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "origin_not_allowed"
+        },
+        {
+          "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+          "where": "detail link on http://127.0.0.1:8811/notices",
+          "reason": "robots_disallowed"
+        }
+      ],
+      "notes": [
+        "detail link on http://127.0.0.1:8811/notices: refused off-origin URL https://example.invalid/offsite; no request made",
+        "detail link on http://127.0.0.1:8811/notices: http://127.0.0.1:8811/notices/draft-notes/D-77 disallowed by robots.txt; no request made",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+        "duplicate listing http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full resolves to already queued http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full; requesting it once",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+        "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full: HTTP 503; scan will be marked incomplete (503/transient errors do not advance the withdrawal counter)",
+        "scan incomplete: no 404 in this scan can count toward withdrawal; documents remain temporarily_unreachable at most"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "reports/requests/scan-17.json",
+      "request_count": 10,
+      "refused_count": 0
+    },
+    "18": {
+      "scan_id": 18,
+      "source_id": "sim_b",
+      "complete": false,
+      "paging_loop": false,
+      "stop_reason": "interrupted",
+      "pages": [],
+      "robots": {
+        "status": "200"
+      },
+      "details": [],
+      "blocked": [],
+      "notes": [
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "",
+      "request_count": 0,
+      "refused_count": 0
+    },
+    "19": {
+      "scan_id": 19,
+      "source_id": "sim_b",
+      "complete": true,
+      "paging_loop": false,
+      "stop_reason": "completed (resumed)",
+      "pages": [],
+      "robots": {
+        "status": "200"
+      },
+      "details": [],
+      "blocked": [],
+      "notes": [
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+        "resumed pending URL left by an interrupted scan: http://127.0.0.1:8812/n/flaky?a=1&b=2"
+      ],
+      "retraction_verdicts": [],
+      "request_manifest": "",
+      "request_count": 0,
+      "refused_count": 0
+    }
+  },
+  "normalization_examples": [
+    {
+      "raw": "http://127.0.0.1:8811/notices/same-url/A-1001?view=full&sort=asc&utm_source=x&utm_medium=y#section-2",
+      "normalized": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full"
+    },
+    {
+      "raw": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full"
+    },
+    {
+      "raw": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public"
+    },
+    {
+      "raw": "http://127.0.0.1:8811/notices/public-edition/A-1002",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002"
+    },
+    {
+      "raw": "http://127.0.0.1:8812/n/water-quality?b=2&a=1&utm_source=feed",
+      "normalized": "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+    },
+    {
+      "raw": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/water-quality?a=1&b=2"
+    }
+  ]
+}

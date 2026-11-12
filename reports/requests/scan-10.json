@@ -1,0 +1,279 @@
+{
+  "scan_id": 10,
+  "source_id": "sim_b",
+  "generated_at": "2026-11-12T12:52:07",
+  "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
+  "requests": [
+    {
+      "ts": 1794487926.196,
+      "source": "sim_b",
+      "kind": "robots",
+      "url": "http://127.0.0.1:8812/robots.txt",
+      "normalized": "http://127.0.0.1:8812/robots.txt",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.317,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed",
+      "normalized": "http://127.0.0.1:8812/feed",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.9,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.439,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 113.5,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.56,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 112.5,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.682,
+      "source": "sim_b",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 114.7,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.802,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 114.2,
+      "conditional_headers": {
+        "If-None-Match": "\"f3c247be88556a4a140e\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:04 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487926.923,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.2,
+      "conditional_headers": {
+        "If-None-Match": "\"f3c247be88556a4a140e\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:04 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.049,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/grant-round?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 110.6,
+      "conditional_headers": {
+        "If-None-Match": "\"fb93da8b665aa43d69bb\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:01 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.169,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/grant-round/B-2002?a=1&b=2",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 117.5,
+      "conditional_headers": {
+        "If-None-Match": "\"fb93da8b665aa43d69bb\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:01 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.29,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/ethics-guidance?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 111.2,
+      "conditional_headers": {
+        "If-None-Match": "\"c337696ad83942bc16b8\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:01 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.413,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/ethics-guidance/B-2003?a=1&b=2",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.4,
+      "conditional_headers": {
+        "If-None-Match": "\"c337696ad83942bc16b8\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:01 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.532,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 101.6,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.654,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 118.4,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.654,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "https://outside.example.org/notices/B-2004",
+      "normalized": "https://outside.example.org/notices/B-2004",
+      "requested": false,
+      "status": null,
+      "outcome": "redirect_blocked",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": "http://127.0.0.1:8812/archive/offsite-hop/B-2004?a=1&b=2",
+      "note": "out-of-scope redirect target: https://outside.example.org/notices/B-2004: https://outside.example.org:443 is outside allowed origins (('http', '127.0.0.1', 8812),)"
+    },
+    {
+      "ts": 1794487927.775,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/n/flaky?a=1&b=2",
+      "requested": true,
+      "status": 302,
+      "outcome": "redirect",
+      "spacing_wait_ms": 110.1,
+      "conditional_headers": {
+        "If-None-Match": "\"30d56a00eed62c904cb7\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:02 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487927.895,
+      "source": "sim_b",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+      "normalized": "http://127.0.0.1:8812/archive/flaky/B-2005?a=1&b=2",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 117.0,
+      "conditional_headers": {
+        "If-None-Match": "\"30d56a00eed62c904cb7\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:02 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    }
+  ],
+  "blocked_candidates": [
+    {
+      "url": "https://example.invalid/escape",
+      "where": "detail link on http://127.0.0.1:8812/feed",
+      "reason": "origin_not_allowed"
+    },
+    {
+      "url": "http://127.0.0.1:8812/internal/ops/B-2003",
+      "where": "detail link on http://127.0.0.1:8812/feed",
+      "reason": "robots_disallowed"
+    },
+    {
+      "url": "http://127.0.0.1:8812/n/offsite-hop?a=1&b=2",
+      "where": "detail",
+      "reason": "redirect_blocked"
+    }
+  ],
+  "seed_urls": [
+    "http://127.0.0.1:8812/feed",
+    "http://127.0.0.1:8812/feed?page=2&sort=asc&view=list",
+    "http://127.0.0.1:8812/feed?page=3&sort=asc&view=list",
+    "http://127.0.0.1:8812/feed?page=4&sort=asc&view=list"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "21f7594a767a5255a6bd3638c6c668721bbbd82d4d96b2cf10831625292e3534",
+  "bytes": 928,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8812/n/water-quality?a=1&b=2",
+  "final_url": "http://127.0.0.1:8812/archive/water-quality/B-2001?a=1&b=2",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"21f7594a767a5255a6bd\"",
+  "last_modified": "Thu, 12 Nov 2026 12:52:01 GMT",
+  "scan_id": 6,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:52:01.271027+00:00",
+  "storage": "identity"
+}

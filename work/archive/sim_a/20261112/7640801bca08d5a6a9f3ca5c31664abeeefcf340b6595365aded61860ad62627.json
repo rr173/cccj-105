@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "7640801bca08d5a6a9f3ca5c31664abeeefcf340b6595365aded61860ad62627",
+  "bytes": 1116,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+  "final_url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "\"7640801bca08d5a6a9f3\"",
+  "last_modified": "Thu, 12 Nov 2026 12:52:05 GMT",
+  "scan_id": 9,
+  "kind": "detail",
+  "fetched_at": "2026-11-12T12:52:05.696201+00:00",
+  "storage": "identity"
+}

@@ -1,0 +1,183 @@
+{
+  "scan_id": 7,
+  "source_id": "sim_a",
+  "generated_at": "2026-11-12T12:52:03",
+  "note": "One entry per HTTP request attempted. 'requested=false' entries are URLs refused before any socket was opened (out-of-scope or robots-disallowed). 'spacing_wait_ms' is the enforced minimum interval delay. robots.txt is fetched once per scan.",
+  "requests": [
+    {
+      "ts": 1794487922.262,
+      "source": "sim_a",
+      "kind": "robots",
+      "url": "http://127.0.0.1:8811/robots.txt",
+      "normalized": "http://127.0.0.1:8811/robots.txt",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 0.0,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.387,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices",
+      "normalized": "http://127.0.0.1:8811/notices",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 118.7,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.506,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 109.4,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.628,
+      "source": "sim_a",
+      "kind": "directory",
+      "url": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+      "normalized": "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 113.9,
+      "conditional_headers": {},
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.758,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/same-url/A-1001?sort=asc&view=full",
+      "requested": true,
+      "status": 200,
+      "outcome": "ok",
+      "spacing_wait_ms": 113.8,
+      "conditional_headers": {
+        "If-None-Match": "\"e33ad6f872f314d071a6\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:51:59 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.876,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002?sort=asc&view=full",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 108.5,
+      "conditional_headers": {
+        "If-None-Match": "\"a9073509dfd64998513b\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:00 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487922.997,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+      "normalized": "http://127.0.0.1:8811/notices/public-edition/A-1002?edition=public",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 114.9,
+      "conditional_headers": {
+        "If-None-Match": "\"8cfbde96e72be1487e03\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:00 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487923.117,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/crossed-canonical/A-1003?sort=asc&view=full",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 100.7,
+      "conditional_headers": {
+        "If-None-Match": "\"26c6c2a1f4f77bee37c5\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:00 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487923.239,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/retractable/A-1044?sort=asc&view=full",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 113.2,
+      "conditional_headers": {
+        "If-None-Match": "\"c9db926147552c7f2a00\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:00 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    },
+    {
+      "ts": 1794487923.359,
+      "source": "sim_a",
+      "kind": "detail",
+      "url": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+      "normalized": "http://127.0.0.1:8811/notices/temporary/A-1055?sort=asc&view=full",
+      "requested": true,
+      "status": 304,
+      "outcome": "not_modified",
+      "spacing_wait_ms": 112.6,
+      "conditional_headers": {
+        "If-None-Match": "\"9e7246d50804f788cc73\"",
+        "If-Modified-Since": "Thu, 12 Nov 2026 12:52:00 GMT"
+      },
+      "redirect_from": null,
+      "note": ""
+    }
+  ],
+  "blocked_candidates": [
+    {
+      "url": "https://example.invalid/offsite",
+      "where": "detail link on http://127.0.0.1:8811/notices",
+      "reason": "origin_not_allowed"
+    },
+    {
+      "url": "http://127.0.0.1:8811/notices/draft-notes/D-77",
+      "where": "detail link on http://127.0.0.1:8811/notices",
+      "reason": "robots_disallowed"
+    }
+  ],
+  "seed_urls": [
+    "http://127.0.0.1:8811/notices",
+    "http://127.0.0.1:8811/notices/page/2?sort=asc&view=list",
+    "http://127.0.0.1:8811/notices/page/3?sort=asc&view=list"
+  ]
+}
