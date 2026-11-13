@@ -7,7 +7,7 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（100 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格）
+# 测试（130 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格 + 30 日程整理）
 python -m unittest discover -s tests -v
 
 # 旧版混合库修复（先预览、后显式应用）
@@ -19,6 +19,14 @@ python -m archive_pipeline.funddemo                                  # 样本演
 python -m archive_pipeline.fundcli process                           # 处理归档版本
 python -m archive_pipeline.fundcli rejections --history              # 拒收原因与历史
 python -m archive_pipeline.fundcli facts --archive-id arc_xxxx       # 查询事实
+
+# 申报日程整理作业（独立于网页扫描，见 §14）
+python -m archive_pipeline.scheduledemo                              # 样本演示
+python -m archive_pipeline.schedcli organize                         # 整理归档公告
+python -m archive_pipeline.schedcli current --explain                # 当前有效安排+溯源
+python -m archive_pipeline.schedcli current --on-date 2026-04-08     # 指定日期查问
+python -m archive_pipeline.schedcli changes --project schedsim::S-1001  # 版本变更记录
+python -m archive_pipeline.schedcli pending --history                # 待确认事项与历史
 
 # 手动操作模拟器（可选）
 python -m archive_pipeline.simctl start                      # 前台运行两站
@@ -277,7 +285,14 @@ archive_pipeline/
   fundcli.py   # process/rejections/facts 命令
   fundsample.py# 可重现通告留档样本构建器
   funddemo.py  # 资助作业演示与报告
-config/sources.json   config/funding_tables.json   scenario/   scenario/funding/
+  scheduleconfig.py # 日程作业词表：公告类型/节点角色/轮次/引用/取消短语
+  scheduledate.py   # 中文与数字日期解析（省略年补齐、区间、字符区间溯源）
+  scheduleextract.py# 段落/句子级证据抽取：轮次、角色、引用目标、取消语义
+  schedule.py # 日程作业：只读消费管线库与留档 → schedule.sqlite3（账本+快照）
+  schedcli.py # organize/current/changes/pending 命令
+  schedulesample.py # 日程作业可重现样本构建器（两来源、多轮、跨年、撤销…）
+  scheduledemo.py   # 日程作业演示与报告
+config/sources.json   config/funding_tables.json   config/schedule_vocab.json   scenario/   scenario/funding/
 tests/   reports/   work/
 ```
 
@@ -436,3 +451,110 @@ SHA-256）记录在每条结果与事实上；**改配置后重跑 `process` 即
 * 年度表头形如 `2024`/`2024年`/`2024年度`；币种仅人民币 元/千元/万元；
 * 配置改变后再次 `process` 会以新配置重处理所有表（当前状态以最近一次运行的
   配置为准，历史全程可查）；作业为单进程批量工具，不做并发处理。
+
+## 14. 申报日程整理作业（`schedule.py` / `schedcli.py`）
+
+科研管理处按周安排项目申报服务时，需要回答“哪个项目哪天开放、哪天停止收件、
+评审何时开始”，并能说明每个日期出自哪份公告的哪段文字。本作业把已归档公告
+版本整理成可查问的有效日程，与网页扫描和资助表格作业完全独立：**不访问网站、
+不调用语言模型、不迁移旧库、不改写扫描结果与原始留档**；以只读方式打开身份模式
+的 `work/pipeline.sqlite3`（旧模式库明确拒绝，提示先 `repair`），并按
+`raw_digest` 软复核 `work/archive/` 原始字节（缺失/不符只记录 `raw_status`，
+绝不拿正文顶替）。结果写入独立的 `work/schedule.sqlite3`。
+
+```bash
+python -m archive_pipeline.scheduledemo                # 样本端到端演示 → reports/schedule.md
+python -m archive_pipeline.schedcli organize           # 整理全部归档公告（可 --source）
+python -m archive_pipeline.schedcli current            # 当前有效安排（可 --project/--round）
+python -m archive_pipeline.schedcli current --on-date 2026-04-08 --explain
+python -m archive_pipeline.schedcli changes --project schedsim::S-1001 [--run N]
+python -m archive_pipeline.schedcli pending [--history] [--source ID]
+```
+
+### 14.1 词表驱动的识别（`config/schedule_vocab.json` / `scheduleconfig.py`）
+
+一份纯 JSON 声明全部业务短语，解析器不硬编码任何节点名称：
+
+* `notice_types`：申报/补充（含延期）/更正/撤销四类公告的标题与正文别名，
+  专门类型优先于通用“申报通知”，标题命中优先于正文，避免补充通知引用原公告
+  标题时被误判；
+* `roles`：报名开放 `apply_open`、材料提交 `submit_deadline`、补正
+  `supplement_deadline`、专家评审 `review_start`，每个角色标注 `open`/
+  `deadline` 语义，用于日期区间取首/取尾；别名跨角色冲突时配置校验直接报错；
+* `round_markers`：第一/二/三轮（期）标记与无标记时的默认轮次；
+* `target_ref`：显式编号引用（含“来源：X，编号：Y”与“编号：Y（来源：X）”
+  两种语序）、项目代码正则、以及由公告编号派生原编号的隐式后缀；
+* `cancellation`：整轮撤销短语与单节点取消短语，二者语义严格区分。
+
+词表摘要（canonical JSON 的 SHA-256）盖在每条证据、待确认事项与账本记录上；
+**改词表后重新整理会产生一套独立可追溯的新判断，旧判断与原因永久保留在历史表。**
+
+### 14.2 日期解析与溯源（`scheduledate.py` / `scheduleextract.py`）
+
+* 支持 `2026年3月10日`、`二〇二六年三月十日`（含十/二十/三十一）、
+  `2026-03-10`、`2026/3/10`、`2026.3.10` 与全角数字；非法日历日期
+  （如 13 月 40 日）显式报错，不静默造数；
+* **省略年份（`3月10日`/`3月10号`）一律以公告发布日期的年份补齐**，
+  不按语义跨年猜测；证据中以 `had_year=1` 标明；
+* `至/到/~/—/-` 连接的日期区间整体识别，按角色 `open`/`deadline` 语义取
+  起点或终点，两个端点的原文都保留；
+* 抽取以**段落（`\n\n` 切分）→ 句子（句末标点切分）→ 日期**三级定位，
+  每条证据保存段落序号、段落起点、句子起止与日期在**正文中的半开字符区间**、
+  原始日期写法、归一 ISO 日期、角色短语及其位置、轮次与轮次短语——
+  `body[date_start:date_end]` 必须恰好等于原始写法，可逐字回到原文核对。
+
+### 14.3 事件账本、当前快照与事务边界（`schedule.py`）
+
+* `node_ledger` 是**只追加的事件账本**：`set`（含延期）、`cancel_node`
+  （单节点取消）、`cancel_round`（整轮撤销）。账本唯一键包含完整证据坐标
+  与词表摘要，相同输入重复整理不产生任何重复行；
+* 每个公告版本在**独立事务**内写入抽取结果、证据、待确认事项与账本行；
+  全部版本处理完后，再用**一个事务**整体替换可查询快照
+  （`current_nodes` / `round_schedules` / `pending_current`）。处理途中崩溃
+  只回滚当前版本，快照维持上一次发布状态——重开数据库看不到任何部分发布的
+  安排，续跑安全且幂等；
+* 新版本只改一个日期时，账本追加一行 `set`，快照里其他节点保持不变；
+  **延期前的旧日期在 `changes` 历史中完整可查，但不再出现在 `current`**；
+* 整轮撤销后该轮节点从当前查询隐藏（`round_schedules.status=
+  round_cancelled`，账本仍在）；单节点取消只把该节点置 `cancelled`，
+  轮次与其余节点保持 `open`——取消评审绝不等于撤销整轮，反之亦然。
+
+### 14.4 跨公告引用与待人工确认
+
+补充/更正/撤销公告先按**来源 + 公告编号**解析唯一目标：
+
+* 命中恰好一个归档身份才并入该项目的安排；零命中（`target_not_found`）、
+  多命中（`target_ambiguous`）、无任何可解析引用（`target_unspecified`）
+  全部进入待确认，不猜测、不任选；
+* 更正公告的角色必须是目标公告已安排过的角色，否则记 `role_mismatch`
+  待确认；“原写 X 有误”引用的旧日期只作证据、不建节点，只有“更正为 Y”
+  的新日期入账；
+* 有日期但无角色短语 → `unmapped_date`；非申报公告只有模糊时间表述、
+  无具体日期 → `vague_statement`。待确认材料**永不并入**已确认安排；
+  `pending_history` 保留每次判断，词表更新使旧事项被新节点覆盖后自动从
+  当前待确认列表关闭（历史仍可查）。
+
+### 14.5 可重现样本与覆盖矩阵（`scenario/schedule/` + `schedulesample.py`）
+
+`python -m archive_pipeline.scheduledemo` 在 `work/schedemo/` 构建两来源
+（schedsim / schedsim2）17 个归档版本的样本，覆盖：同一项目两轮日期
+（S-1001）、跨年报名（S-1002）、仅延长收件期限且同公告两版本
+（S-1003 v1/v2）、整轮撤销（S-1004）、省略年份（S-1005）、单节点取消与
+先更正后取消（S-1006/S-1008/S-1013）、同编号两身份（S-1007 完整版/公众版）、
+跨来源显式引用（S-1009→schedsim2/X-2001）、整体模糊（S-1010）、中文数字
+（S-1011）、词表外角色（S-1012，扩词表后入账）。
+
+### 14.6 日程作业测试（`tests/test_schedule.py`，30 项）
+
+预期日期与正文位置在测试中独立列出，与数据库实际记录逐项核对：日期解析
+（中文/全角/省略年/区间/非法日期/字符区间）、两轮分别建安排、跨年归一、
+延期历史替换、整轮撤销与单节点取消的范围差异、更正只改目标角色、跨来源
+解析、待确认不被并入、幂等重整理、受控中断后的回滚与恢复、词表变更保留旧
+判断、管线库与原始留档只读、旧模式库拒绝。
+
+### 14.7 日程作业已知边界
+
+* 轮次识别依赖词表中的“第 N 轮/期”标记，无标记公告归入默认轮次；
+* 省略年份只按发布年份补齐，不做“12 月公告写 1 月大概率属次年”之类推断；
+* 跨公告引用仅支持词表声明的编号/项目代码形式，自然语言隐射（如“前述项目”）
+  保持待人工确认；作业为单进程批量工具，不做并发处理。

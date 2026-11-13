@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "c5a023d3d5f054570533831767b1b6a51c649b8e3b7921955b296310ef963aa2",
+  "bytes": 744,
+  "source_id": "schedsim",
+  "url": "http://schedsim.local/notices/S-1003",
+  "final_url": "http://schedsim.local/notices/S-1003",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-11-10T00:00:00+00:00",
+  "storage": "identity"
+}
