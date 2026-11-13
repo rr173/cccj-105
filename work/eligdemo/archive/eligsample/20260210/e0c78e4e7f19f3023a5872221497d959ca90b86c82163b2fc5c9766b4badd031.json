@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "e0c78e4e7f19f3023a5872221497d959ca90b86c82163b2fc5c9766b4badd031",
+  "bytes": 856,
+  "source_id": "eligsample",
+  "url": "http://eligsample.local/notices/2026/E-9001?edition=public",
+  "final_url": "http://eligsample.local/notices/2026/E-9001?edition=public",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-02-10T00:00:00+00:00",
+  "storage": "identity"
+}

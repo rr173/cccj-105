@@ -7,8 +7,17 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（130 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格 + 30 日程整理）
+# 测试（172 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格 + 30 日程整理 + 42 资格预审）
 python -m unittest discover -s tests -v
+
+# 离线资格预审（独立于扫描/资助/日程，见 §15）
+python -m archive_pipeline.eligdemo_main                                   # 样本演示 → reports/eligibility.md
+python -m archive_pipeline.eligcli check --clause scenario/eligibility/clauses/E-9001-v1.json
+python -m archive_pipeline.eligcli --workdir work/eligdemo run \
+    --clause scenario/eligibility/clauses/E-9001-v1.json \
+    --applications scenario/eligibility/applications/applications-basic.jsonl
+python -m archive_pipeline.eligcli --workdir work/eligdemo show --application-id APP-1004 --text
+python -m archive_pipeline.eligcli --workdir work/eligdemo runs
 
 # 旧版混合库修复（先预览、后显式应用）
 python -m archive_pipeline.cli repair --preview          # 只读，不改库
@@ -292,7 +301,16 @@ archive_pipeline/
   schedcli.py # organize/current/changes/pending 命令
   schedulesample.py # 日程作业可重现样本构建器（两来源、多轮、跨年、撤销…）
   scheduledemo.py   # 日程作业演示与报告
-config/sources.json   config/funding_tables.json   config/schedule_vocab.json   scenario/   scenario/funding/
+  eligvalue.py # 申请字段类型读取：缺失/null/类型不符 → 未知值；Decimal 精确比较
+  eligclause.py# 条款校验与归档绑定：版本、字段声明、常量、引用、环、引文逐字核对
+  eligengine.py# 三值求值与完整解释树（不短路；成员计数区间与逐人结果）
+  eligibility.py# 只读绑定归档、逐行处理 JSONL、结果库与三种结论汇总
+  eligcli.py   # check/clause/run/show/runs 命令
+  eligsample.py# 合成归档样本构建器（同编号变体、两版本）
+  eligdemo.py  # 人工编录条款、错误引文样例与合成申请构建器
+  eligdemo_main.py # 资格预审端到端演示与报告
+config/sources.json   config/funding_tables.json   config/schedule_vocab.json
+scenario/   scenario/funding/   scenario/schedule/   scenario/eligibility/
 tests/   reports/   work/
 ```
 
@@ -558,3 +576,130 @@ python -m archive_pipeline.schedcli pending [--history] [--source ID]
 * 省略年份只按发布年份补齐，不做“12 月公告写 1 月大概率属次年”之类推断；
 * 跨公告引用仅支持词表声明的编号/项目代码形式，自然语言隐射（如“前述项目”）
   保持待人工确认；作业为单进程批量工具，不做并发处理。
+
+## 15. 离线资格预审作业（`eligibility.py` / `eligcli.py`）
+
+申报服务人员收齐材料前先做资格预审：把人工编录的资格条款作用到一批申请资料，
+逐项给出**满足 / 不满足 / 待补证**及判断依据。作业与网页扫描、资助表格、日程
+整理完全独立：不访问网站、不调用语言模型、不迁移旧库；以**只读**方式打开身份
+模式的 `work/pipeline.sqlite3`，只用于核对条款绑定的归档版本与引文；不依赖
+资助表或日程结果。结果写入独立的 `work/eligibility.sqlite3`。
+
+```bash
+python -m archive_pipeline.eligdemo_main      # 构建样本 workdir 并跑完整演示 → reports/eligibility.md
+python -m archive_pipeline.eligcli check --clause PATH      # 只检查条款，不读申请
+python -m archive_pipeline.eligcli --workdir W run --clause PATH --applications FILE [--progress]
+python -m archive_pipeline.eligcli --workdir W show --application-id ID [--run N] [--text]
+python -m archive_pipeline.eligcli --workdir W runs
+```
+
+退出码：`0` 成功；`2` 用法/运行错误；`3` **条款无效，未产出任何判定**；
+`4` **申请文件结构损坏**——运行标记未完成、保留已写前缀、无成功汇总。
+
+### 15.1 条款文件与版本绑定（`eligclause.py`）
+
+条款为纯 JSON（`format: eligibility-clause/1`，样例
+`scenario/eligibility/clauses/E-9001-v1.json`）。每一份条款**精确绑定**
+`source_id` + `archive_id` + `version_no`，并声明主体与成员两个作用域的字段
+类型（`string` / `boolean` / `decimal` / `date`）。每个具名条件有唯一 ID、
+`expr` 与一条**引文**：正文中的半开字符区间 `[start,end)` 加上原句 `quote`。
+程序从归档库读出该版本 `body`，只有 `body[start:end] == quote` 时才接受条款：
+
+* 不存在的版本 / 身份 → `unknown_version`（并列出该身份实际存在的版本）；
+* 引文落在**同编号另一变体**（如公众版 vs 完整版）→ `citation_in_other_variant`；
+* 区间偏移、引文在别处出现但切片不等于原句 → `citation_mismatch`；
+* 引文在绑定正文中完全找不到 → `citation_not_found`；越界 → `citation_out_of_bounds`。
+
+条款编录错误在**读取第一份申请之前**一次性报出，绝不降级成“待补证”：
+未知键/拼写错误、未声明字段、作用域不符、常量类型错误（十进制常量必须是字符串，
+布尔/日期同理）、对字符串做大小比较、`at_least` 非非负整数、
+`count` 出现在成员作用域、未定义引用、**引用环**、跨主体/成员作用域引用、
+根条件未定义或非主体作用域、重复条件 ID。**不运行任何用户提供的 Python 表达式。**
+
+条款换版必须显式提供另一份文件；单次运行始终使用开始时验证的内容，条款摘要
+（canonical JSON SHA-256）与文件 SHA-256 记入运行摘要与每份解释。
+
+### 15.2 条件语言
+
+```json
+{"field": "F", "op": "eq|gt|ge|lt|le", "value": CONSTANT}
+{"field": "F", "op": "in", "values": [CONSTANT, ...]}
+{"all": [EXPR, ...]}   {"any": [EXPR, ...]}   {"not": EXPR}
+{"ref": "CONDITION_ID"}
+{"count": {"predicate": MEMBER_EXPR, "at_least": K}}
+```
+
+* `count` 只能位于主体作用域，谓词在**成员作用域**逐人求值；同一谓词里的学历
+  与年限必然读自同一名成员，不能拿甲的学历拼乙的年限；
+* 前向引用允许（见样例 `ROOT` 引用后定义的 `PI_CONDITION`/`COUNT_DOCTORS`）；
+* 成员谓词只能读当前成员字段；引用环、越界引用在条款校验时报出位置并拒绝。
+
+### 15.3 三值语义与成员计数（`eligengine.py`）
+
+固定规则：`all` 有假即假、全真才真、否则未知（空 `all` 为真）；`any` 有真即真、
+全假才假、否则未知（空 `any` 为假）；`not` 保留未知；缺失值之间比较不等于真。
+整条 `all` 只要已有**明确反例**即为不满足，即使其他材料缺失——不会机械地改判
+待补证（例：诚信明确有失信记录时，即使法人登记日期缺失，总体仍是不满足）。
+
+成员计数先算已知满足人数 `t` 与结果未知人数 `u`：`complete=true` 时人数区间
+`[t, t+u]`；`complete=false` 时未列成员只可能增加满足人数，区间 `[t, ∞)`。
+下界达到 `k` → 满足；上界小于 `k` → 不满足；其余待补证；`k=0` 恒满足。
+
+样例（“至少两名博士且各有三年经验”，`COUNT_DOCTORS`）：
+
+| 申请 | 情形 | 人数区间 | 计数结论 | 总体 |
+| --- | --- | --- | --- | --- |
+| APP-1001 | 完整名单，2 真 1 假 1 未知 | `[2, 3]` | 满足 | 满足 |
+| APP-1003 | `complete=false` 但已知 3 真 | `[3, ∞)` | 满足 | 满足 |
+| APP-1004 | 完整名单，1 真 1 假 1 未知（卡门槛） | `[1, 2]` | 待补证 | 待补证 |
+| APP-1005 | 两人各满足一半（学历/年限分属不同人） | `[0, 0]` | 不满足 | 不满足 |
+| APP-1012 | 未列全且有未知成员 | `[1, ∞)` | 待补证 | 待补证 |
+
+### 15.4 申请资料（JSONL）与未知值
+
+每行一个 JSON 对象：唯一 `application_id`（字符串）、`subject`（主体对象）、
+`items`（成员对象数组）、`complete`（布尔）。`complete=true` + `items=[]` 表示
+**确定没有成员**（完整空名单），与 `complete=false`（尚有人未提供）严格不同。
+
+字段缺失 → `missing_field`；值为 `null` → `null_value`；实值不符合声明类型
+（含十进制写成 JSON 数字、日期不是合法 ISO 日期）→ `type_mismatch`。三类均为
+**未知值**，逐字段记录原因，**不中断文件**。十进制资料与常量一律以字符串承载，
+比较使用 `Decimal`，全程不经过浮点（`3.0 >= 3`、`5.00 >= 5` 含边界成立）。
+
+文件**结构**错误则不同：坏 JSON（`bad_json`）、重复 `application_id`、
+`items` 非数组/成员非对象、`complete` 非布尔、`application_id` 缺失或为空等，
+逐行推进到该行即非零退出，**标明行号**；已写结果保留但运行标记 `incomplete`，
+**不写成功汇总**；后续行不再判定。
+
+### 15.5 结果、解释与可追溯
+
+* 结果按输入顺序写入（`seq`/`line_no` 保留行序），汇总三种结论数量，并记录
+  条款摘要、文件摘要与输入摘要（SHA-256、字节数、行数）；
+* 每份申请保存**完整解释树**：覆盖所有条件分支（不短路），每个节点带条件 ID/
+  位置、三值结果、实际字段值与资料 JSON Pointer、成员计数的逐人结果与人数区间，
+  并关联条款加载时已核对的公告引文（`body[start:end] == quote`）；
+* 总体结论取条款声明的 `root` 条件；
+* 结果库可重开，`show` 仍可从解释逐项核对（同一份结果只存一份条件展开，
+  `ref` 节点用 `/condition_nodes/...` 指针引用，读回时展开）。
+
+### 15.6 样本、演示与测试
+
+`scenario/eligibility/` 全部为**合成资料**：`eligsample/` 是归档原文（E-9001
+完整版 v1/v2、公众版同编号另一变体、E-9002），`clauses/` 是人工编录的条款与
+三类错误引文样例（错位、串到公众版、把 v1 文本指向 v2），`applications/` 是
+12 份申请（含缺失字段、完整空名单、未列全但足够、未知卡门槛、两人各一半、
+精确十进制边界、明确反例等）。`python -m archive_pipeline.eligdemo_main`
+构建 `work/eligdemo/` 并写出 `reports/eligibility.md`，演示条款检查、三类拒绝、
+批量顺序结果、单份完整解释、计数四情形、三类坏文件与 2000 行生成文件的逐行处理。
+
+`tests/test_eligibility.py`（42 项）独立列出预期结论与关键解释后与库中记录核对。
+
+### 15.7 已知边界
+
+* 只做辅助预审：结论、引文与解释可追溯，**最终由工作人员按条款核实决定，
+  不代替人工审批**；
+* 条件需人工编录为 JSON，程序**不从自然语言自动推断**资格条件；
+* 一次运行只使用一份条款；条款换版需显式指定另一份文件；
+* 申请文件按行处理，内存只保留当前申请与条款；结果库会随申请数增长
+  （每份约 10–30 KB 解释），大批量时请预留磁盘；
+* 作业为单进程批量工具，不做并发处理；归档库只读，不重写任何归档内容。
