@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "71b15c7c863ae1b40120971a85990b952fd2c59549751621a189c8a9a7c35c5c",
+  "bytes": 136,
+  "source_id": "sim_b",
+  "url": "http://127.0.0.1:8811/notices/orphan/OWNER",
+  "final_url": "http://127.0.0.1:8811/notices/orphan/OWNER",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-01-10T12:00:00+00:00",
+  "storage": "identity"
+}

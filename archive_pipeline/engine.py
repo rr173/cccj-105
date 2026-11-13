@@ -55,6 +55,7 @@ from .htmlparse import ADAPTERS, AdapterError, parse_html
 from .identity import resolve_archive_id
 from .robots import RobotsPolicy
 from .store import Store
+from .worklock import collection_lock
 from .urlnorm import InvalidURL, normalize_url, split_origin
 
 RETRACTION_THRESHOLD = 2
@@ -138,7 +139,20 @@ class ScanEngine:
 
     # ==================================================================
     def scan(self, source: SourceConfig, *, interrupt_after: int | None = None,
-             resume: bool = True) -> ScanResult:
+             resume: bool = True, hooks: dict | None = None) -> ScanResult:
+        # Every collection writes raw bytes before committing the database
+        # facts.  The shared work-directory lock is held for the whole scan so
+        # storage reclamation (exclusive) can never run inside that window;
+        # two scans remain concurrent with each other.  The lock lives in the
+        # production entry point so a caller cannot opt out of it.
+        with collection_lock(self.store.path.parent, timeout=300.0):
+            return self._scan_locked(source, interrupt_after=interrupt_after,
+                                     resume=resume, hooks=hooks or {})
+
+    def _scan_locked(self, source: SourceConfig, *,
+                     interrupt_after: int | None = None,
+                     resume: bool = True, hooks: dict | None = None) -> ScanResult:
+        hooks = hooks or {}
         scan_id = self.store.create_scan(source.source_id, now_iso())
         result = ScanResult(scan_id=scan_id, source_id=source.source_id)
         limiter = RateLimiter(source.min_interval_ms)
@@ -169,7 +183,8 @@ class ScanEngine:
                     raise InterruptedScan(
                         f"interrupted after {processed} detail URL(s); "
                         f"{len(detail_urls) - processed} remain pending")
-                item = self._process_detail(source, fetcher, scan_id, url_key, result)
+                item = self._process_detail(source, fetcher, scan_id, url_key,
+                                            result, hooks)
                 result.detail_items.append(item)
                 processed += 1
                 if processed % 5 == 0:
@@ -487,7 +502,9 @@ class ScanEngine:
 
     # ==================================================================
     def _process_detail(self, source: SourceConfig, fetcher: HttpFetcher,
-                        scan_id: int, url_key: str, result: ScanResult) -> dict:
+                        scan_id: int, url_key: str, result: ScanResult,
+                        hooks: dict | None = None) -> dict:
+        hooks = hooks or {}
         item: dict = {
             "url_key": url_key,
             "kind": "detail",
@@ -569,6 +586,11 @@ class ScanEngine:
         item["archive_path"] = stored["path"]
         item["requested_etag"] = etag or ""
         item["requested_last_modified"] = last_modified or ""
+        # Test/demo hook: announce that the raw bytes are on disk but none of
+        # the database facts below exist yet.  The collection lock is already
+        # held here, which is exactly the ingest window reclamation must cover.
+        if hooks.get("after_archive_write"):
+            hooks["after_archive_write"](item, self)
 
         if fetched.redirect_chain:
             self._record_redirects(source, fetched.redirect_chain, scan_id, result)

@@ -9,4 +9,10 @@ same read-only archive: the schedule organizer (scheduleconfig, scheduledate,
 scheduleextract, schedule, schedcli, schedulesample, scheduledemo) and the
 offline eligibility pre-screen (eligvalue, eligclause, eligengine,
 eligibility, eligcli, eligsample, eligdemo, eligdemo_main).
+
+Storage management for the raw archive lives in worklock (the shared/exclusive
+work-directory lock used by collection and reclamation), reclaim (orphan
+analysis, persisted plans, journalled quarantine/restore/purge), reclaimcli,
+reclaimsample and reclaimdemo.  It never deletes versions, scan facts or the
+results of the downstream jobs.
 """

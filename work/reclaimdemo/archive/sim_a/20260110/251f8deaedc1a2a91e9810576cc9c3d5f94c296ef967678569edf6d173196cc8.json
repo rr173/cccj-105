@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "251f8deaedc1a2a91e9810576cc9c3d5f94c296ef967678569edf6d173196cc8",
+  "bytes": 151,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/orphan/CORRUPT-GZ",
+  "final_url": "http://127.0.0.1:8811/notices/orphan/CORRUPT-GZ",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-01-10T12:00:00+00:00",
+  "storage": "gzip"
+}

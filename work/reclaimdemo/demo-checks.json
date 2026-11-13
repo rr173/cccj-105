@@ -1,0 +1,267 @@
+[
+  {
+    "check": "preview exit code",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "check": "preview moved no file",
+    "ok": true,
+    "detail": "24 files / 6746 bytes before and after"
+  },
+  {
+    "check": "preview created no plan",
+    "ok": true,
+    "detail": "reclaim.sqlite3 absent after preview"
+  },
+  {
+    "check": "cross-date copy protected",
+    "ok": true,
+    "detail": "both date copies of the referenced digest are protected"
+  },
+  {
+    "check": "fresh orphan within grace",
+    "ok": true,
+    "detail": "new unreferenced file is not a candidate"
+  },
+  {
+    "check": "gzip judged by decompressed bytes",
+    "ok": true,
+    "detail": "valid gzip orphan is isolatable"
+  },
+  {
+    "check": "diagnostic only: corrupt_gzip",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: incomplete_group",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: digest_mismatch",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: metadata_source_conflict",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: metadata_size_conflict",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: symlink",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "diagnostic only: foreign_path",
+    "ok": true,
+    "detail": "verdict=anomaly"
+  },
+  {
+    "check": "plan re-opens",
+    "ok": true,
+    "detail": "rcl_ee54fc3c6ae14dc9 status=planned"
+  },
+  {
+    "check": "plan moved no file",
+    "ok": true,
+    "detail": "no file was moved by planning"
+  },
+  {
+    "check": "per-file rows recorded",
+    "ok": true,
+    "detail": "4 planned file rows with hash and size"
+  },
+  {
+    "check": "isolation moved candidates",
+    "ok": true,
+    "detail": "moved=4"
+  },
+  {
+    "check": "version bytes untouched",
+    "ok": true,
+    "detail": "version-referenced response unchanged"
+  },
+  {
+    "check": "scan-only response untouched",
+    "ok": true,
+    "detail": "scan-item-referenced response still on disk"
+  },
+  {
+    "check": "every candidate left its original path",
+    "ok": true,
+    "detail": "4 moved; 0 still present"
+  },
+  {
+    "check": "quarantine holds the files",
+    "ok": true,
+    "detail": "4 files under .reclaim/quarantine/rcl_ee54fc3c6ae14dc9"
+  },
+  {
+    "check": "no space reported as freed yet",
+    "ok": true,
+    "detail": "quarantined=1240, released=0"
+  },
+  {
+    "check": "restore undoes isolation",
+    "ok": true,
+    "detail": "status=restored restored=4"
+  },
+  {
+    "check": "restored bytes identical",
+    "ok": true,
+    "detail": "every restored file hashes to its response digest"
+  },
+  {
+    "check": "purge deleted exactly the quarantined bytes",
+    "ok": true,
+    "detail": "released=1240 expected=1240"
+  },
+  {
+    "check": "on-disk delta matches released bytes",
+    "ok": true,
+    "detail": "6746 - 5506 = 1240"
+  },
+  {
+    "check": "purge status",
+    "ok": true,
+    "detail": "purged"
+  },
+  {
+    "check": "versions and scan facts preserved by purge",
+    "ok": true,
+    "detail": "2 version rows, 1 scan item rows remain"
+  },
+  {
+    "check": "purge retry is idempotent",
+    "ok": true,
+    "detail": "retry reports zero new purge and the same released total"
+  },
+  {
+    "check": "purged plan cannot be restored",
+    "ok": true,
+    "detail": "plan rcl_c070792fd1164800 was permanently purged; it is not restorable"
+  },
+  {
+    "check": "stale plan refused",
+    "ok": true,
+    "detail": "3 conflict(s); plan rcl_67e467ffad164eea is stale: 3 conflict(s) found during revalidation; no file was moved"
+  },
+  {
+    "check": "stale plan moved nothing",
+    "ok": true,
+    "detail": "candidate file still at its original path"
+  },
+  {
+    "check": "stale plan marked",
+    "ok": true,
+    "detail": "stale"
+  },
+  {
+    "check": "collector wrote bytes before committing",
+    "ok": true,
+    "detail": "second process holds bytes not yet referenced"
+  },
+  {
+    "check": "collector exited cleanly",
+    "ok": true,
+    "detail": ""
+  },
+  {
+    "check": "reclaimer waited for the collecting process",
+    "ok": true,
+    "detail": "waited 1.12s for the shared lock held by pid 5142"
+  },
+  {
+    "check": "in-flight bytes were not taken",
+    "ok": true,
+    "detail": "fresh response and metadata still present after the race"
+  },
+  {
+    "check": "in-flight bytes are not durable facts yet",
+    "ok": true,
+    "detail": "the collector's file is only protected by the lock, not by a DB row"
+  },
+  {
+    "check": "kill fixture has two candidates",
+    "ok": true,
+    "detail": "2 candidate groups"
+  },
+  {
+    "check": "controlled kill fired",
+    "ok": true,
+    "detail": "simulated process kill after 1 move(s)"
+  },
+  {
+    "check": "journal knows what moved",
+    "ok": true,
+    "detail": "status=isolating, moved=1"
+  },
+  {
+    "check": "re-open resumes the plan",
+    "ok": true,
+    "detail": "status=isolated moved=3"
+  },
+  {
+    "check": "no half-group left behind",
+    "ok": true,
+    "detail": "4 files in quarantine"
+  },
+  {
+    "check": "resumed plan can still be undone",
+    "ok": true,
+    "detail": "restored"
+  },
+  {
+    "check": "restore reports conflict",
+    "ok": true,
+    "detail": "status=restored_with_conflicts"
+  },
+  {
+    "check": "both files kept",
+    "ok": true,
+    "detail": "original path keeps the new content; the quarantined copy remains"
+  },
+  {
+    "check": "conflict file was not overwritten",
+    "ok": true,
+    "detail": "new content untouched"
+  },
+  {
+    "check": "retry counts each file once",
+    "ok": true,
+    "detail": "released=1240 expected=1240"
+  },
+  {
+    "check": "vanished file is reported missing, not as released",
+    "ok": true,
+    "detail": "the already-deleted file is 'missing', not 'purged'"
+  },
+  {
+    "check": "purge blocked by new persistent reference",
+    "ok": true,
+    "detail": "status=purge_blocked, 1 blocked"
+  },
+  {
+    "check": "referenced quarantined files kept",
+    "ok": true,
+    "detail": "2 file(s) remain in quarantine"
+  },
+  {
+    "check": "block carries the reference evidence",
+    "ok": true,
+    "detail": "each blocked digest names the database row that references it"
+  },
+  {
+    "check": "blocked plan can still be undone",
+    "ok": true,
+    "detail": "status=restored, restored=2"
+  }
+]

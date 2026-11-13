@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "c59a0c07c4ca7fc0ca0490ebd1948da8d4360032a7dfc38eee62d367714fa668",
+  "bytes": 44,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/late",
+  "final_url": "http://127.0.0.1:8811/notices/late",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-01-10T12:00:00+00:00",
+  "storage": "identity"
+}

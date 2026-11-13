@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "c878b049d635810bc9140e91d14c93183851ac26bbf85f3d3b63460b15fccfb7",
+  "bytes": 145,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/orphan/MISMATCH",
+  "final_url": "http://127.0.0.1:8811/notices/orphan/MISMATCH",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-01-10T12:00:00+00:00",
+  "storage": "identity"
+}

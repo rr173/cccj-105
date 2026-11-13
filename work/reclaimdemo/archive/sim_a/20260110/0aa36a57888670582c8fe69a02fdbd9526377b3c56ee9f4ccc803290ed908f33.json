@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "0aa36a57888670582c8fe69a02fdbd9526377b3c56ee9f4ccc803290ed908f33",
+  "bytes": 139,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/draft/A-2002",
+  "final_url": "http://127.0.0.1:8811/notices/draft/A-2002",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-01-10T12:00:00+00:00",
+  "storage": "identity"
+}

@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "ad24edeebcd851f8280428b9ec7902e6d772b256b198ec30cd3bb4a04ab7832f",
+  "bytes": 139,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/twin/A-3003",
+  "final_url": "http://127.0.0.1:8811/notices/twin/A-3003",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-11-13T09:00:00+00:00",
+  "storage": "identity"
+}

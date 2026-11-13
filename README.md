@@ -7,8 +7,19 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（172 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格 + 30 日程整理 + 42 资格预审）
+# 测试（235 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格
+#       + 30 日程整理 + 42 资格预审 + 63 原始留档空间回收）
 python -m unittest discover -s tests -v
+
+# 原始留档空间回收（见 §16；预览只读、计划可重开、隔离可撤销、清理需显式）
+python -m archive_pipeline.reclaimcli preview --cutoff 2026-11-01T00:00:00+00:00
+python -m archive_pipeline.reclaimcli plan    --cutoff 2026-11-01T00:00:00+00:00
+python -m archive_pipeline.reclaimcli show    --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli isolate --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli restore --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli purge   --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli journal --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimdemo
 
 # 离线资格预审（独立于扫描/资助/日程，见 §15）
 python -m archive_pipeline.eligdemo_main                                   # 样本演示 → reports/eligibility.md
@@ -279,6 +290,11 @@ archive_pipeline/
   archive.py   # 内容寻址原始字节归档
   store.py     # SQLite：url_identities/document_identities/url_aliases/versions/
                #         scan_misses/scan_items/repair_runs/quarantine_notes
+  worklock.py  # 工作目录共享/独占锁：正式采集持共享，回收隔离持独占
+  reclaim.py   # 孤立原始响应回收：只读引用判断、计划、逐文件日志、隔离/撤销/清理
+  reclaimcli.py# preview/plan/show/journal/plans/isolate/restore/purge 命令
+  reclaimsample.py # 合成留档现场（跨日期副本、损坏组、gzip、宽限期…）
+  reclaimdemo.py   # 回收端到端演示与自检
   repair.py    # 旧库混合历史的只读预览 + 单事务幂等修复
   engine.py    # 扫描、身份解析、版本、轮次完成、撤稿裁决、恢复
   demo.py      # 全场景演示与报告
@@ -703,3 +719,139 @@ python -m archive_pipeline.eligcli --workdir W runs
 * 申请文件按行处理，内存只保留当前申请与条款；结果库会随申请数增长
   （每份约 10–30 KB 解释），大批量时请预留磁盘；
 * 作业为单进程批量工具，不做并发处理；归档库只读，不重写任何归档内容。
+
+## 16. 原始留档空间回收（`reclaim.py` / `reclaimcli.py`）
+
+采集管线把原始响应按内容寻址写入 `work/archive/<source>/<yyyymmdd>/<digest>.bin`
+（大响应为 `.bin.gz`），旁边是同摘要的 `.json` 元数据。随着轮次增加，磁盘上会留下
+**已落盘、但没有任何持久采集记录引用**的孤立响应。本作业只回收这一类孤立响应：
+版本、扫描事实、扫描请求清单、分页清单，以及下游作业（资助事实、日程账本、资格结果）
+引用的摘要都**不删、不改**；历史版本保留政策不变。
+
+```bash
+python -m archive_pipeline.reclaimcli preview --cutoff 2026-11-01T00:00:00+00:00
+python -m archive_pipeline.reclaimcli plan    --cutoff 2026-11-01T00:00:00+00:00
+python -m archive_pipeline.reclaimcli show    --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli isolate --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli restore --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli purge   --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimcli journal --plan rcl_xxxxxxxxxxxxxxxx
+python -m archive_pipeline.reclaimdemo            # 合成现场 + 53 项自检 → reports/reclaim.md
+```
+
+退出码：`0` 成功；`2` 用法/前置条件错误；`3` 计划已过期（候选新增引用或文件被替换，
+一个文件都不移动）；`4` 冲突（部分文件未能移动/撤销保留双方/清理被新引用拦住）；
+`5` 引用来源不可读（未做任何改动）。
+
+### 16.1 边界与引用判断（`reclaim.py`）
+
+* **边界**：一个工作目录及其实际留档根。默认 `<workdir>/archive`（即扫描器实际写入
+  的目录）；`--archive` 可显式指定，相对路径按工作目录解析，绝不按当前进程目录解析。
+* **引用来源**（全部只读）：`pipeline.sqlite3` 的 `versions.raw_digest`、
+  `scan_items.raw_digest`、`scan_items.detail_json`、`scans.requests_json`、
+  `scans.pages_json`；工作目录下存在的 `funding.sqlite3`（`facts`、
+  `version_errors`、`table_outcomes`）、`schedule.sqlite3`
+  （`extraction_versions`）、`eligibility.sqlite3`；以及 `reports/requests/`、
+  `requests/`、`manifests/` 下的请求/分页 JSON 清单。
+* **一个摘要只要仍有引用，它在所有来源/日期目录下的全部副本都受保护。**
+  某一份旁边的元数据看起来更旧不会改变结论。
+* **读不到就拒绝执行。** 管线库缺失、数据库为空/无表/无任何可核对摘要列、
+  JSON 清单损坏、下游库损坏，都会让 `preview`/`plan` 以退出码 5 终止——
+  "查不到引用"只有在每个来源都可读时才允许当作结论。不做任何降级猜测。
+
+### 16.2 文件系统规则
+
+只认可现有留档布局的普通文件：
+
+```
+<archive-root>/<source>/<yyyymmdd>/<sha256>.bin
+<archive-root>/<source>/<yyyymmdd>/<sha256>.bin.gz
+<archive-root>/<source>/<yyyymmdd>/<sha256>.json
+```
+
+* `.bin.gz` 以 **gzip 解压后的原始字节**核对摘要；压缩包的摘要不作为响应摘要。
+  元数据声明 `storage: gzip` 与磁盘形态必须一致。
+* 完整、摘要相符、归属一致的组才可能成为候选。以下一律只列诊断，不进入候选：
+  缺元数据或缺响应文件的不完整组、损坏 gzip、摘要不符、元数据 `digest`/`source_id`/
+  `bytes`/`storage` 冲突、符号链接（含目录）、陌生路径与陌生顶层目录。
+* 候选还必须早于使用者给定的宽限截止时间：文件系统 mtime **和** 元数据
+  `fetched_at` 都早于 `--cutoff`。近期刚写入、尚未入库的文件不能因"当前查不到引用"
+  被回收。宽限期内但不完整的组计入"宽限期"统计而不是"异常"。
+
+### 16.3 预览与计划
+
+`preview` 只读：不移动文件、不创建 `reclaim.sqlite3`，并报告
+`file_moves: 0`、`freed_disk_bytes: 0`。`plan` 把同一份分类快照持久化到
+`work/reclaim.sqlite3`，可用 `show`/`journal` 再次打开。计划逐组、逐文件记录：
+
+* 组：来源、日期目录、响应摘要、判定（受保护/宽限期内/可隔离/异常）、原因、
+  磁盘字节、响应字节、引用依据（库/表/列/行或清单路径）；
+* 文件：相对路径、角色（blob/blob_gz/meta）、磁盘字节、文件内容 SHA-256、mtime；
+* 汇总：`protected`、`within_grace`、`isolatable`、`anomaly` 四类分别统计组数与
+  磁盘字节；`estimated_reclaimable_disk_bytes` 是**可隔离组的磁盘占用估算**，
+  `freed_disk_bytes` 在永久清理前恒为 0——预计节省量从不冒充已释放空间。
+
+### 16.4 隔离区与逐文件日志
+
+隔离区固定在留档根内、由程序管理：`<archive-root>/.reclaim/quarantine/<plan_id>/…`
+`--archive` 之外的任意路径不会被接受为删除目标；每个待移动文件的目标路径都由
+计划内的相对路径确定性派生，命令行无法指定。
+
+移动文件与写日志无法由一次 SQLite 事务包住，因此隔离是**先记动作、再改名、再逐文件
+落状态**（`actions` 表 + `files.state`）。在移动响应文件之后、移动元数据之前被强制
+结束，重开时 `journal` 仍能说明每个文件在哪里：
+
+* `isolate` 重入先用 `action='move_in'`、`status='started'` 的动作行按文件系统实际
+  位置核对——已在隔离区则记为完成，仍在原位则记为未开始，两者都不是则保留双方并
+  标冲突；随后只处理仍为 `planned` 的文件，继续原计划；
+* 已移动文件不会再次计入空间收益（`released_bytes` 只在永久清理时写入一次）；
+* `restore` 遇到原路径出现**不同内容**时保留双方并报 `conflict`，绝不覆盖；内容相同
+  则保留现有文件、删除隔离副本；
+* `purge` 重试时按文件状态判断：已删除的文件报 `missing` 并把释放量补记一次，
+  不会重复计释放量。
+
+### 16.5 执行前复核与过期计划
+
+计划与执行之间可能又跑过采集。`isolate` 在移动**第一份文件之前**用计划自己的
+`--cutoff` 重新读取引用并重新分类整个留档：任一候选摘要新增引用、文件大小/内容/mtime
+变化、文件消失或变成符号链接、组不再完整、或整组判定改变，都会让计划变为 `stale`
+并以退出码 3 拒绝，**一个文件都不移动**，冲突逐条列出（摘要、路径、原因、依据）。
+不会按旧名单强行清理。恢复中断的隔离同样先复核。
+
+### 16.6 与正式采集入口的协作（`worklock.py`）
+
+扫描器在提交扫描项/版本之前就把原始字节写入留档，因此"数据库此刻查不到引用"并不
+等于孤立。宽限期无法覆盖这个窗口，本功能也不靠加大宽限期规避：
+
+* `ScanEngine.scan()` 在**整个扫描期间**持有工作目录的**共享**锁
+  （`<workdir>/pipeline.lock` 上的 `flock`）；锁在正式入口内部获取，调用方无法跳过；
+* `preview`/`plan`/`isolate`/`restore`/`purge` 持有同一把锁的**独占**模式；
+* 同一工作目录的采集与隔离因此串行化，不同工作目录互不阻塞；不要求并行吞吐。
+
+`tests/test_reclaim.py::RealIngestWindowTests` 用两个真实进程证明：采集进程在写入
+原始字节、尚未提交事实时持有共享锁，回收进程在独占锁上等待；采集提交后回收才继续，
+此时该摘要已被引用而受保护。
+
+### 16.7 合成现场、演示与测试
+
+`reclaimsample.py` 在临时/`work` 目录生成合成留档：版本引用对象、仅扫描项引用的
+响应、同摘要跨日期副本、过期孤立对象、新近孤立对象、可隔离 gzip、缺元数据组、
+损坏 gzip、摘要不符、元数据来源/大小冲突、符号链接与陌生路径。
+`python -m archive_pipeline.reclaimdemo` 依次演示并自检：预览不改文件、计划可重开、
+隔离后可撤销、永久清理的**真实磁盘增量**、保存计划后新增引用被拒、采集写盘未提交时
+回收进程等待、隔离中途被杀后继续/撤销、撤销遇同名不同内容保留双方、清理中断后重试
+不重复计量，隔离后新增引用拦住清理（53 项核对，报告写入 `reports/reclaim.md`）。
+
+`tests/test_reclaim.py`（63 项）独立构造引用库与文件事实，断言引用判断、gzip 解压后
+摘要、宽限、四类统计、计划可重开、逐文件日志、过期计划零移动、中断恢复、撤销冲突、
+清理幂等、CLI 退出码、真实两进程采集窗口与旧 CLI/版本查询仍可用；所有断言读取真实
+字节、目录与数据库记录。
+
+### 16.8 已知边界
+
+* 只回收"文件已落盘且无任何持久引用"的原始响应；不导出备份、不淘汰历史版本、
+  不生成分析报表，也不修改 `versions`/`scan_items`/`scans`。
+* 引用来源是固定清单（见 §16.1）；工作目录外部的数据库或清单不会自动纳入，需要时
+  把它复制到工作目录的对应位置。
+* 时间戳解析要求带时区偏移的 ISO-8601；`--cutoff` 必须显式给出。
+* 同一工作目录的采集与回收串行；不提供并行回收，也不跨工作目录协调。

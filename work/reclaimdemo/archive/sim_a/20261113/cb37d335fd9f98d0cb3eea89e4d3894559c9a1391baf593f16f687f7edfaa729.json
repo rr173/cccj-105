@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "cb37d335fd9f98d0cb3eea89e4d3894559c9a1391baf593f16f687f7edfaa729",
+  "bytes": 157,
+  "source_id": "sim_a",
+  "url": "http://127.0.0.1:8811/notices/orphan/ORPHAN-FRESH",
+  "final_url": "http://127.0.0.1:8811/notices/orphan/ORPHAN-FRESH",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-11-13T09:00:00+00:00",
+  "storage": "identity"
+}
