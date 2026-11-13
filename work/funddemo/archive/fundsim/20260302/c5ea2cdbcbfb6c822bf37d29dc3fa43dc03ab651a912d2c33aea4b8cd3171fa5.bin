@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>关于2024—2025年度重点机构资助安排的通告（完整版）</title></head>
+<body>
+<article class="notice" data-key="F-3001">
+  <h1>关于2024—2025年度重点机构资助安排的通告</h1>
+  <dl class="facts">
+    <dt>编号</dt><dd>F-3001</dd>
+    <dt>发布日期</dt><dd>2026-03-02</dd>
+  </dl>
+  <div class="body">
+    <p>现将2024—2025年度重点机构资助安排公布如下，完整版含全部资助项目。</p>
+    <table class="funding-table" id="funding-main">
+      <caption>重点机构资助明细（单位：元）</caption>
+      <thead>
+        <tr>
+          <th rowspan="2">机构</th>
+          <th rowspan="2">资助项目</th>
+          <th colspan="2">2024年度</th>
+          <th>2025年度</th>
+        </tr>
+        <tr>
+          <th>资助金额</th>
+          <th>备注</th>
+          <th>资助金额（万元）</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="2">中科院数学与系统科学研究院</td>
+          <td>基础理论专项</td>
+          <td>1,234.56</td>
+          <td>重点</td>
+          <td>1.5</td>
+        </tr>
+        <tr>
+          <td>应用转化项目</td>
+          <td>２０００</td>
+          <td>一般</td>
+          <td>0.25</td>
+        </tr>
+        <tr>
+          <td>江南大学</td>
+          <td>联合实验室</td>
+          <td>500</td>
+          <td>—</td>
+          <td>2</td>
+        </tr>
+        <tr>
+          <th colspan="2">合计</th>
+          <td>3,734.56</td>
+          <td>—</td>
+          <td>3.75</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>各机构应按年度专款专用，接受社会监督。</p>
+  </div>
+</article>
+</body>
+</html>

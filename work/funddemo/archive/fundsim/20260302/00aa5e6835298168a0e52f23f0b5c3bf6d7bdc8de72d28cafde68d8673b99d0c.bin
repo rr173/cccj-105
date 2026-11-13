@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>关于未标注单位的通告</title></head>
+<body>
+<article class="notice" data-key="F-3011">
+  <h1>关于未标注单位的通告</h1>
+  <dl class="facts">
+    <dt>编号</dt><dd>F-3011</dd>
+    <dt>发布日期</dt><dd>2026-03-12</dd>
+  </dl>
+  <div class="body">
+    <p>本表既无表格级单位，金额列头也未标注单位。</p>
+    <table class="funding-table" id="funding-nounit">
+      <caption>机构资助明细表</caption>
+      <thead>
+        <tr><th>机构</th><th>资助项目</th><th>2024年度</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>机构甲</td><td>项目一</td><td>100</td></tr>
+      </tbody>
+    </table>
+  </div>
+</article>
+</body>
+</html>

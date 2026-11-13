@@ -1,0 +1,13 @@
+{
+  "select": [
+    {"class": "funding-table"},
+    {"caption_pattern": "资助"}
+  ],
+  "headers": {
+    "institution": ["机构", "承担机构", "机构名称", "单位名称"],
+    "project": ["资助项目", "项目", "项目名称"],
+    "amount": ["资助金额", "金额", "经费"],
+    "total": ["合计", "总计"]
+  },
+  "ignore_headers": ["备注", "说明"]
+}

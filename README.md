@@ -7,12 +7,18 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（62 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复）
+# 测试（100 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格）
 python -m unittest discover -s tests -v
 
 # 旧版混合库修复（先预览、后显式应用）
 python -m archive_pipeline.cli repair --preview          # 只读，不改库
 python -m archive_pipeline.cli repair --apply            # 单事务原子迁移
+
+# 资助表格结构化作业（独立于网页扫描，见 §13）
+python -m archive_pipeline.funddemo                                  # 样本演示
+python -m archive_pipeline.fundcli process                           # 处理归档版本
+python -m archive_pipeline.fundcli rejections --history              # 拒收原因与历史
+python -m archive_pipeline.fundcli facts --archive-id arc_xxxx       # 查询事实
 
 # 手动操作模拟器（可选）
 python -m archive_pipeline.simctl start                      # 前台运行两站
@@ -263,7 +269,16 @@ archive_pipeline/
   sim_html.py  # 两版式 HTML 与 robots.txt 生成
   sim_server.py# 两个本地 HTTP 站点（ETag/Last-Modified/302/404/503/版次级404）
   simctl.py    # 场景状态修改
-config/sources.json   scenario/scenario.json   tests/   reports/   work/
+  fundconfig.py# 资助作业配置：表格选择条件 + 机构/项目/年度/金额标题别名
+  fundgrid.py  # HTML 表格 → 逻辑网格（colspan/rowspan 展开，结构拒收）
+  fundamount.py# 金额与单位解析（千分位/全角/小数，Decimal 精确换算）
+  fundtable.py # 列头映射、明细提取、合计核对
+  funding.py   # 资助作业：只读消费管线库与原始留档 → funding.sqlite3
+  fundcli.py   # process/rejections/facts 命令
+  fundsample.py# 可重现通告留档样本构建器
+  funddemo.py  # 资助作业演示与报告
+config/sources.json   config/funding_tables.json   scenario/   scenario/funding/
+tests/   reports/   work/
 ```
 
 ## 11. 旧版混合历史修复（`repair.py` / `cli repair`）
@@ -314,3 +329,110 @@ python -m archive_pipeline.cli repair --apply       # 单事务迁移
   直接后果；旧身份与版本不会被删除，可经 `notice_key` 与 `url_aliases` 追溯。
 * 时间戳含扫描生成时间，因此 `reports/` 每次运行会变化；数据库与归档按运行重建于 `work/`
   （演示启动时清理）。
+
+## 13. 资助表格结构化作业（`funding.py` / `fundcli.py`）
+
+通告正文里的科研资助额度常藏在 HTML 表格中，纯文本归档丢失了合并单元格的上下级
+关系。本作业把已归档版本对应的**原始 HTML** 中的资助表格整理成 SQLite 事实记录：
+机构、资助项目、年度、金额（精确到人民币元）。
+
+**独立入口、只读消费。** 作业与网页扫描完全分离：不访问站点、不调用语言模型、
+不迁移旧库。它以只读方式打开身份模式的 `work/pipeline.sqlite3`（旧模式库会被
+明确拒绝并提示先 `repair`，绝不代为迁移），按 `raw_digest` 从 `work/archive/`
+读取原始字节并复核 SHA-256——**留档缺失（`missing_raw`）或摘要不符
+（`digest_mismatch`）是明确的版本级失败，绝不拿规范化正文顶替**。结果写入独立的
+`work/funding.sqlite3`，管线库与原始留档保持原样。
+
+```bash
+python -m archive_pipeline.funddemo                     # 样本端到端演示 → reports/funding.md
+python -m archive_pipeline.fundcli process              # 处理全部归档版本（可 --source/--archive-id）
+python -m archive_pipeline.fundcli rejections --history # 拒收原因（含历次诊断）
+python -m archive_pipeline.fundcli facts --archive-id arc_xxxx --table 0 --row 3
+```
+
+### 13.1 表格选择与健康检查配置（`config/funding_tables.json`）
+
+一份纯 JSON 声明全部规则，作业不靠"取每行第几个文本"猜字段：
+
+* `select`：表格选择条件（`id` / `class` / `caption_pattern` 正则，任一规则命中即选中）；
+* `headers`：`institution`（机构）、`project`（资助项目）、`amount`（资助金额）、
+  `total`（合计行标签）的标题别名，按规范化文本精确匹配（忽略一处单位括注如`（万元）`）；
+* `ignore_headers`：可安全忽略的列（默认 备注/说明）。
+
+任何列匹配不上别名 → 整表拒收（`unmapped_column`）。配置摘要（canonical JSON 的
+SHA-256）记录在每条结果与事实上；**改配置后重跑 `process` 即重处理被拒收的表**，
+旧诊断保留在 `outcome_history` 可追溯（见 §13.5）。
+
+### 13.2 支持的 HTML 子集与逻辑网格
+
+* `<table>` 可含 `<caption>`；`thead/tbody/tfoot` 仅作行组、不携带语义，行按文档序处理；
+* `<tr>` 必须是表格或行组的直接子元素，`<th>/<td>` 必须是 `<tr>` 的直接子元素；
+* `colspan/rowspan` 必须为显式正整数（HTML 的 `0`"跨到末尾"不在子集内）；
+* 不允许嵌套表格；展开后网格必须是完整矩形：合并区域不重叠、rowspan 不越界、无空洞；
+* 表头为前 1–2 行全 `<th>` 行（两层表头：年度在上层、金额在下层）。
+
+合并单元格展开为可解释的逻辑网格（`fundgrid.py`）：每个网格位置都能回到覆盖它的
+物理单元格。机构通过 rowspan 覆盖多行时，明细行自动继承，并记录继承自哪个物理
+行头；年度列组（colspan）下必须恰有一列匹配金额别名，其余列必须匹配忽略别名。
+表头、明细、合计三类行严格区分。
+
+### 13.3 表格级拒收原因（不挪动数字凑行）
+
+结构类：`nested_table`、`misplaced_row`、`misplaced_cell`、`invalid_span`、
+`rowspan_out_of_bounds`、`overlap_merge`、`grid_hole`、`empty_table`、`no_header`、
+`unsupported_header_depth`、`header_row_in_body`、`unmapped_column`、`column_mapping`、
+`duplicate_year`、`amount_spans_years`（一个金额格横跨两个年度列，绝不复制到两个年度）、
+`amount_spans_rows`、`multiple_total_rows`、`no_details`。
+
+数据类：`unknown_currency`（如美元）、`conflicting_unit`（同层冲突单位）、
+`missing_unit`、`unparseable_amount`（破折号/待定等，绝不补零）、`missing_field`、
+`total_mismatch`。版本级：`missing_raw`、`digest_mismatch`。
+
+### 13.4 金额与单位
+
+* 单位可写在表格说明（`单位：万元` 或 `（万元）`）或金额列头（`资助金额（万元）`）；
+  支持人民币 元/千元/万元；**列头局部单位优先于表格单位**；
+* 支持千分位（`,`/`，`）、全角数字与小数，转换为精确人民币元 `Decimal`
+  （全程不经过二进制浮点，如 `0.1` 万元 = `1000` 元整）；
+* 合计行不入账；同表按年度列出的合计与已识别明细在统一单位下逐项核对，
+  差额或无法解析的金额使整张表进入待处理区（保留网格、候选明细与具体原因），
+  其余正常表格不受影响。
+
+### 13.5 事实模型、溯源与幂等
+
+`facts` 以 `(source_id, archive_id, version_no, table_index, row_index, year)`
+定位：同编号的公众版与完整版各有独立事实、互不覆盖，各版本结果都保留。每条明细
+携带：来源、归档身份、版本号、表格序号、原始物理单元格位置（金额格/机构格/项目格）、
+继承自哪些合并表头与行头（`header_path_json`/`row_header_path_json`）、原文金额
+（`amount_text`）与单位依据（`unit_source`），可回到网页逐字段核对。
+
+* 每张表在一个事务内处理：处理途中退出不留部分可查询明细，重开可安全续处理；
+* 相同输入再次处理不重复记账（已入账且配置与留档摘要未变的表跳过）；
+* 被拒收的表在配置修正后重处理；`table_outcomes` 是当前状态，
+  `outcome_history` 保留每一次诊断（含版本级错误），只有完整通过的结果进入事实查询。
+
+### 13.6 可重现样本与演示（`scenario/funding/` + `funddemo.py`）
+
+`python -m archive_pipeline.funddemo` 在 `work/funddemo/` 构建 12 个归档版本的
+样本（来源 `fundsim`，身份模式管线库 + 内容寻址原始留档），覆盖：跨行机构、
+跨列年度、局部金额单位（万元覆盖表级元）、全角数字、千分位、合计核对
+（F-3001 完整版/公众版，同编号两个身份）；错位合并（F-3002）；跨年度金额格
+（F-3003）；差额合计（F-3004）；留档缺失（F-3005）与摘要损坏（F-3006）；
+缺别名的表（F-3007，改配置后入账）；破折号/待定（F-3008）；嵌套表格（F-3009）；
+未知币种（F-3010）；缺单位（F-3011）。演示依次展示中途退出与续处理、正确展开
+与换算、双版本事实共存、全部拒收原因、改配置后重处理与诊断历史，报告写入
+`reports/funding.md`。
+
+### 13.7 资助作业测试（`tests/test_funding.py`，38 项）
+
+期望事实在测试中独立于原始表格逐条列出（机构/项目/年度/金额/来源单元格），
+与数据库实际记录逐字段核对；覆盖网格展开与继承、合并区域重叠/越界/空洞、
+金额与单位解析（含 Decimal 精确性）、列映射拒收、合计核对、拒收隔离、
+重复处理幂等、中途退出回滚与续处理、配置修正重处理、旧库拒绝。
+
+### 13.8 资助作业已知边界
+
+* 仅支持 §13.2 的 HTML 子集；表格说明仅取 `<caption>`；合计行标签必须在第 0 列；
+* 年度表头形如 `2024`/`2024年`/`2024年度`；币种仅人民币 元/千元/万元；
+* 配置改变后再次 `process` 会以新配置重处理所有表（当前状态以最近一次运行的
+  配置为准，历史全程可查）；作业为单进程批量工具，不做并发处理。

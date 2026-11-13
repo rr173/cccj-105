@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "82ea685a158d0caba0388293bc850aeff8b4e62f0a4789e51b9c5e53bd204c5f",
+  "bytes": 768,
+  "source_id": "fundsim",
+  "url": "http://fundsim.local/notices/2026/F-3010",
+  "final_url": "http://fundsim.local/notices/2026/F-3010",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-03-02T00:00:00+00:00",
+  "storage": "identity"
+}

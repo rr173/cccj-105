@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>关于内嵌说明表的通告</title></head>
+<body>
+<article class="notice" data-key="F-3009">
+  <h1>关于内嵌说明表的通告</h1>
+  <dl class="facts">
+    <dt>编号</dt><dd>F-3009</dd>
+    <dt>发布日期</dt><dd>2026-03-10</dd>
+  </dl>
+  <div class="body">
+    <p>本表单元格内嵌套了另一张表，超出支持的 HTML 子集。</p>
+    <table class="funding-table" id="funding-nested">
+      <caption>机构资助（含内嵌说明表）（单位：元）</caption>
+      <thead>
+        <tr><th>机构</th><th>资助项目</th><th>2024年度</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>机构甲</td><td>项目一</td><td>100</td></tr>
+        <tr><td colspan="3"><table><tr><td>内嵌说明</td></tr></table></td></tr>
+      </tbody>
+    </table>
+  </div>
+</article>
+</body>
+</html>

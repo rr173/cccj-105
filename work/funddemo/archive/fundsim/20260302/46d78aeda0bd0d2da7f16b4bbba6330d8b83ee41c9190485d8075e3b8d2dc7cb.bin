@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head><meta charset="utf-8"><title>关于年度资助合计的通告</title></head>
+<body>
+<article class="notice" data-key="F-3004">
+  <h1>关于年度资助合计的通告</h1>
+  <dl class="facts">
+    <dt>编号</dt><dd>F-3004</dd>
+    <dt>发布日期</dt><dd>2026-03-05</dd>
+  </dl>
+  <div class="body">
+    <p>本表2024年度合计与明细之和不符（差额100元）。</p>
+    <table class="funding-table" id="funding-mismatch">
+      <caption>年度资助明细（单位：元）</caption>
+      <thead>
+        <tr><th rowspan="2">机构</th><th rowspan="2">资助项目</th><th>2024年度</th><th>2025年度</th></tr>
+        <tr><th>资助金额</th><th>资助金额</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="2">机构甲</td><td>项目一</td><td>100</td><td>200</td></tr>
+        <tr><td>项目二</td><td>300</td><td>400</td></tr>
+        <tr><th colspan="2">合计</th><td>500</td><td>600</td></tr>
+      </tbody>
+    </table>
+  </div>
+</article>
+</body>
+</html>
