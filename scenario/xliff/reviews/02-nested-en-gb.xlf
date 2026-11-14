@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="notices/X-4001-application.html" source-language="zh-CN" target-language="en-GB" datatype="plaintext">
+        <body>
+          <group id="outer">
+            <group id="inner">
+                    <trans-unit id="u-nest-1" approved="yes">
+                      <source xml:lang="zh-CN">一、申报时间为<g id="1">2026年6月1日至2026年7月15日</g>，逾期不再受理。项目代号为<x id="2" equiv-text="〔KX-2026-01〕"/>，请务必在申报表中保持一致。</source>
+                      <target state="final" xml:lang="en-GB">(1) Applications are accepted from <g id="1">June 1, 2026 to July 15, 2026</g>; late submissions are not accepted. The project code is <x id="2" equiv-text="〔KX-2026-01〕"/>, and must be kept identical in the application form.</target>
+                    </trans-unit>
+                    <trans-unit id="u-nest-2" approved="yes">
+                      <source xml:lang="zh-CN">二、申报单位须具备独立法人资格，并提供近三年的科研项目清单。清单中的项目代号须与申报书封面完全相同，不得自行简写或改写。</source>
+                      <target state="final" xml:lang="en-GB">(2) Applicants must be independently registered legal entities and must provide a list of research projects from the past three years. Codes in the list must match the cover of the application exactly; abbreviations or rewrites are not permitted.</target>
+                    </trans-unit>
+                    <trans-unit id="u-swap" approved="yes">
+                      <source xml:lang="zh-CN"><g id="p1">三、每个申报单位最多申报两个项目；</g><g id="p2">超过限额的申报材料不予受理，且不另行通知。</g></source>
+                      <target state="final" xml:lang="en-GB"><g id="p2">Applications exceeding the limit will not be accepted, without further notice.</g><g id="p1">(3) Each applicant may submit at most two projects; </g></target>
+                    </trans-unit>
+            </group>
+          </group>
+        </body>
+  </file>
+  <file original="notices/X-4001-application.html#uk" source-language="zh-CN" target-language="en-GB" datatype="plaintext">
+        <body>
+      <trans-unit id="u-head-uk" approved="yes">
+        <source>各有关单位：现将2026年度科研合作项目申报事项通告如下。</source>
+        <target state="final">To all relevant units: the 2026 research cooperation project application arrangements are set out below.</target>
+      </trans-unit>
+        </body>
+  </file>
+</xliff>

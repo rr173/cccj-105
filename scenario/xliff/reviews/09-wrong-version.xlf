@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="notices/X-4002-supplement.html#v2" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-wrong-version" approved="yes">
+        <source>一、申报截止时间延长至2026年8月15日，项目代号〔KX-2026-01〕不变。</source>
+        <target state="final">1. The application deadline is extended to August 15, 2026; project code KX-2026-01 is unchanged.</target>
+      </trans-unit>
+        </body>
+  </file>
+</xliff>

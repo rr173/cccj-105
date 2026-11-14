@@ -1,0 +1,38 @@
+{
+  "format": "xliff-binding/1",
+  "description": "嵌套 group、兄弟代码换序、两种英语目标语言",
+  "files": [
+    {
+      "original": "notices/X-4001-application.html",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1,
+      "source_language": "zh-CN",
+      "target_language": "en-GB"
+    },
+    {
+      "original": "notices/X-4001-application.html#uk",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1
+    }
+  ],
+  "units": {
+    "u-nest-1": {
+      "start": 31,
+      "end": 97
+    },
+    "u-nest-2": {
+      "start": 99,
+      "end": 159
+    },
+    "u-swap": {
+      "start": 161,
+      "end": 199
+    },
+    "u-head-uk": {
+      "start": 0,
+      "end": 29
+    }
+  }
+}

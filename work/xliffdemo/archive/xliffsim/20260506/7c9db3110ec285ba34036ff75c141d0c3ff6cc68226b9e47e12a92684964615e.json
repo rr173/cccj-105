@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "7c9db3110ec285ba34036ff75c141d0c3ff6cc68226b9e47e12a92684964615e",
+  "bytes": 717,
+  "source_id": "xliffsim",
+  "url": "http://xliffsim.local/notices/X-4002",
+  "final_url": "http://xliffsim.local/notices/X-4002",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-05-06T00:00:00+00:00",
+  "storage": "identity"
+}

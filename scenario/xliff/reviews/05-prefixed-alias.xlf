@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<t:xliff version="1.2" xmlns:t="urn:oasis:names:tc:xliff:document:1.2">
+  <t:file original="notices/X-4001-application.html" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <t:body>
+      <t:trans-unit id="u-01" approved="yes">
+        <t:source xml:lang="zh-CN">一、申报时间为<t:g id="1">2026年6月1日至2026年7月15日</t:g>，逾期不再受理。项目代号为<t:x id="2" equiv-text="〔KX-2026-01〕"/>，请务必在申报表中保持一致。</t:source>
+        <t:target state="final" xml:lang="en-US">(1) Applications are accepted from <t:g id="1">June 1, 2026 to July 15, 2026</t:g>; late submissions are not accepted. The project code is <t:x id="2" equiv-text="〔KX-2026-01〕"/>, and must be kept identical in the application form.</t:target>
+      </t:trans-unit>
+        </t:body>
+  </t:file>
+  <t:file original="notices/X-4001-application.html#head" source-language="zh-cn" target-language="en-US" datatype="plaintext">
+        <t:body>
+      <t:trans-unit id="u-head" approved="yes">
+        <t:source xml:lang="zh-CN">各有关单位：现将2026年度科研合作项目申报事项通告如下。</t:source>
+        <t:target state="final" xml:lang="en-US">To all relevant units: the 2026 research cooperation project application arrangements are announced below.</t:target>
+      </t:trans-unit>
+        </t:body>
+  </t:file>
+</t:xliff>

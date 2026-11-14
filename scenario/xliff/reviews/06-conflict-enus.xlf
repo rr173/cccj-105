@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="notices/X-4001-application.html#conflict" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-01-conflict" approved="yes">
+        <source>一、申报时间为<g id="1">2026年6月1日至2026年7月15日</g>，逾期不再受理。项目代号为<x id="2" equiv-text="〔KX-2026-01〕"/>，请务必在申报表中保持一致。</source>
+        <target state="final">(1) The application period runs from <g id="1">June 1, 2026 through July 15, 2026</g>. Submissions after the deadline are not accepted. Project code <x id="2" equiv-text="〔KX-2026-01〕"/> must appear consistently in the application form.</target>
+      </trans-unit>
+        </body>
+  </file>
+</xliff>

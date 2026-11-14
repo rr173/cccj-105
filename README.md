@@ -7,9 +7,18 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（235 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格
-#       + 30 日程整理 + 42 资格预审 + 63 原始留档空间回收）
+# 测试（255 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格
+#       + 30 日程整理 + 42 资格预审 + 63 原始留档空间回收 + 20 XLIFF 审译接入）
 python -m unittest discover -s tests -v
+
+# 审译文件接入（见 §17）：只读归档正文，SQLite 整理双语语料
+python -m archive_pipeline.xliffdemo                    # 样本演示 → reports/xliff.md
+python -m archive_pipeline.xliffcli --workdir work/xliffdemo intake \
+    scenario/xliff/reviews/01-full-enus.xlf \
+    --bindings scenario/xliff/mappings/01-full-enus.json
+python -m archive_pipeline.xliffcli --workdir work/xliffdemo usable --language en-GB
+python -m archive_pipeline.xliffcli --workdir work/xliffdemo groups --state conflict
+python -m archive_pipeline.xliffcli --workdir work/xliffdemo issues --unit-status rejected
 
 # 原始留档空间回收（见 §16；预览只读、计划可重开、隔离可撤销、清理需显式）
 python -m archive_pipeline.reclaimcli preview --cutoff 2026-11-01T00:00:00+00:00
@@ -325,8 +334,14 @@ archive_pipeline/
   eligsample.py# 合成归档样本构建器（同编号变体、两版本）
   eligdemo.py  # 人工编录条款、错误引文样例与合成申请构建器
   eligdemo_main.py # 资格预审端到端演示与报告
+  xliffparse.py # XLIFF 1.2 命名空间解析、g/x 展开、代码树比较、语言标签
+  xliffintake.py# 审译接入：绑定校验、候选/草稿/拒收、冲突组、单事务提交
+  xliffcli.py  # intake/usable/groups/candidates/issues/units/deliveries/runs
+  xliffsample.py # XLIFF 作业可重现归档样本构建器
+  xliffdemo.py # 审译接入端到端演示与报告
 config/sources.json   config/funding_tables.json   config/schedule_vocab.json
 scenario/   scenario/funding/   scenario/schedule/   scenario/eligibility/
+scenario/xliff/   work/   reports/
 tests/   reports/   work/
 ```
 
@@ -855,3 +870,185 @@ python -m archive_pipeline.reclaimdemo            # 合成现场 + 53 项自检 
   把它复制到工作目录的对应位置。
 * 时间戳解析要求带时区偏移的 ISO-8601；`--cutoff` 必须显式给出。
 * 同一工作目录的采集与回收串行；不提供并行回收，也不跨工作目录协调。
+
+## 17. XLIFF 1.2 审译接入作业（`xliffparse.py` / `xliffintake.py` / `xliffcli.py`）
+
+研究机构把通告交给翻译人员加工，再把审译文件交回资料组。资料组需要的不是翻译
+编辑器，而是**能用于双语检索与后续文本加工的干净语料**：中文片段确实来自指定
+的通告版本，外文片段已经审定，项目代号等占位内容没有在翻译中丢失。本作业与网页
+扫描、资助表格、日程整理、资格预审并列，**只读**身份模式管线库的版本正文：
+
+* 不访问任何网址，不调用翻译服务，**不把译文写回公告正文**；
+* 不迁移旧库（旧模式库明确拒绝并提示先 `repair`）；
+* 结果写入独立的 `work/xliff.sqlite3`；相同文件再接入不增加记录。
+
+```bash
+python -m archive_pipeline.xliffdemo                     # 样本演示 → reports/xliff.md
+python -m archive_pipeline.xliffcli --workdir W intake REVIEW.xlf --bindings MAP.json
+python -m archive_pipeline.xliffcli --workdir W usable [--source ID] [--archive-id ID] \
+    [--version N] [--language en-US] [--json]
+python -m archive_pipeline.xliffcli --workdir W groups [--state available|conflict] [--json]
+python -m archive_pipeline.xliffcli --workdir W candidates [--archive-id ID] [--version N]
+python -m archive_pipeline.xliffcli --workdir W issues [--run N] \
+    [--unit-status rejected|draft] [--json]
+python -m archive_pipeline.xliffcli --workdir W units [--delivery N] [--unit-id X]
+python -m archive_pipeline.xliffcli --workdir W deliveries
+python -m archive_pipeline.xliffcli --workdir W runs
+```
+
+退出码：`0` 成功（含 `duplicate` 重传）；`2` 用法/运行错误（文件、库、映射缺失或
+格式错）；`3` **审译文件或映射被拒，语料库未改动**（XML 语法坏、含 DTD/外部实体）；
+`4` **XML 完好但部分文件/单元不合约定**——其余单元照常接入，问题按单元列出，汇总
+非零退出；`5` **提交前强制退出**，整份交付回滚。
+
+### 17.1 接受范围：XLIFF 1.2 + 映射
+
+根元素必须是 `{urn:oasis:names:tc:xliff:document:1.2}xliff`（前缀任意，看的是命名
+空间 URI）。一个文档可以有多个 `file`，每个 `file` 恰好一个 `body`，`body` 中可
+用 `group` 任意嵌套组织单元。**单元 id 的唯一性范围是整个 file**，不是各个 group。
+每个 `trans-unit` 恰有一个 `source` 与一个 `target`。
+
+内联内容只限：普通文字、成对 `g`、带 `equiv-text` 的空元素 `x`。`g`/`x` 都必须
+有非空 `id`，**一个单元里不能重号**。`source`、`target` 分别递归展开：文字与尾部
+文字按顺序保留（空白绝不折叠），`x` 用 `equiv-text` 展开，`g` 只贡献子内容。
+`ph`/`bpt`/`ept`/`it`/`mrk`/`sub` 等一律报 `unsupported_inline`，**不剥掉后继续
+入账**；单元下出现 `source`/`target`/`note` 以外的子元素亦然。
+
+file 必须写 `source-language` 与 `target-language`。接受形如 `zh-CN`、`en-US`、
+`en-GB` 的标签：首段 2–8 个 ASCII 字母，后续段各 1–8 个 ASCII 字母或数字，短横线
+分段，不接受空段；比较不区分大小写，**存储统一小写**。源与目标不能是同一标签
+（`en-US` 与 `en-GB` 是不同目标语言，绝不合并）。`source`/`target` 自带 `xml:lang`
+时必须与 file 对应语言一致（同样按小写比较）。
+
+### 17.2 映射文件（`format: xliff-binding/1`）
+
+一份 JSON 声明每个 `file original` 绑定的**确切归档身份与版本**，以及每个单元在
+该版本 `body` 上的半开字符区间。样例
+`scenario/xliff/mappings/01-full-enus.json`：
+
+```json
+{
+  "format": "xliff-binding/1",
+  "description": "X-4001 完整版两段 → 美式英语",
+  "files": [
+    {"original": "notices/X-4001-application.html",
+     "source_id": "xliffsim",
+     "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+     "version_no": 1,
+     "units": {
+       "u-01": {"start": 31, "end": 97}
+     }},
+    {"original": "notices/X-4001-application.html#head",
+     "source_id": "xliffsim",
+     "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+     "version_no": 1,
+     "units": {"u-head": {"start": 0, "end": 29}}}
+  ],
+  "units": {"shared-id": {"start": 99, "end": 159}}
+}
+```
+
+* `files[].original` 必须与某个 `file` 的 `original` **精确相等**，且文档内不得重复；
+  映射中出现但文档里没有、或文档里有但映射没有，都按问题记录；
+* `files[].units` 是该文件内 `trans-unit id → {start,end}`；可选的顶层 `units` 作为
+  共享切片表，文件级同名条目优先（便于把一个 original 拆成多个 file）；
+* `start`/`end` 必须是 JSON 整数，`0 <= start < end`；重复 JSON 键直接拒绝；
+* 可选 `source_language` / `target_language` 固定该文件的标签，与文档声明不符即拒收。
+
+**区间按 Python 字符串下标左闭右开解释，不是 UTF-8 字节位置**。中文每个字算一个
+下标；`body[31:97]` 是 66 个字符、152 个 UTF-8 字节。
+
+### 17.3 单元判定顺序（拒绝不静默、绝不补译）
+
+1. 文件级：`original` 存在且不重复、语言标签合法且源≠目标、恰一个 `body`、容器层
+   元素合法、`original` 在映射中、绑定的 `(source_id, archive_id, version_no)` 在
+   管线库中确实存在。文件级失败时其中单元逐个记录为 `reason_code` 同文件原因。
+2. 单元级：id 非空且在该 file 内唯一（**末尾才出现的重复 id 让该 file 内该 id 的
+   所有出现都失效**）、恰一个 `source`/`target`、`xml:lang` 一致、内联展开合法、
+   映射提供了该 id 的区间且不越界。
+3. **绑定**：展开后的 `source` 必须**逐字符等于** `body[start:end]`。不等即
+   `binding_mismatch`，并在原因里给出提示（该文字在绑定正文本体内的真实位置、
+   出现在同编号**另一业务变体**、或出现在**同一身份的另一个版本**），但绝不自动
+   换用别的变体或新版本。
+4. **结构对照**：`target` 必须具有与 `source` 完全相同的代码 id 集合、元素类型和
+   **直接代码父节点**；同一父节点下的兄弟代码允许换序，把一个代码搬入另一层不算
+   合格；`x` 的 `equiv-text` 必须相同。代码 ID 被偷换、`x` 改成 `g`、内层占位符
+   移到外面、`equiv-text` 被改，分别报 `target_missing_code` / `target_extra_code` /
+   `target_code_type_changed` / `target_code_hierarchy_changed` /
+   `target_equiv_changed`。
+5. `target` 无任何文字也无代码（或只有空白且无代码）→ `empty_target`；**绝不拿
+   source 补成译文**。
+6. **审定候选**：仅当 `approved="yes"` 且 `target state="final"`。其余合法单元作为
+   **草稿**保存（`draft_not_approved`，原因写明缺哪一项），永远不能被可用语料查询选中，
+   也不参与冲突判断。
+
+每个单元都保留：源/译展开文本、两棵代码树（`source_codes_json`/`target_codes_json`）、
+展开事件序列摘要、`file_pk`、`unit_index`、`group_path`、`line`/`source_line`/
+`target_line` 与诊断。被拒的单元同样保留这些材料供人检查。
+
+### 17.4 候选、交付来源与冲突
+
+**组** = `(source_id, archive_id, version_no, start, end, source_language,
+target_language)`，即"同一公告版本、同一字符区间、同一语言对"。
+
+* 译文是否相同按**文字与代码交错的事件序列**判断（文字片段、`g` 的开/闭、`x` 的
+  编号与 `equiv-text`），忽略 XML 属性顺序与命名空间前缀；只比展开后的纯文本不够。
+  事件序列的 SHA-256 记为 `event_digest`，作为候选的唯一附加键。
+* 不同文件交来**完全相同**的审定译文 → 同一个候选，另加一条 `candidate_sources`
+  交付来源；可用查询里不会出现两条，但两次交付的来源都能查到。
+* 若该组出现**另一份不同的**审定译文 → `group_state.state='conflict'`，`reason`
+  写明"待人工核对"，`available_candidate_id` 置空——旧译文不再冒充唯一可用答案，
+  两份候选及各自来源都可用 `candidates` / `groups` 查到。草稿不触发冲突。
+* `group_state` 是物化结果，每次交付后在同一事务内**重新计算受影响组**；`groups`
+  命令总是按组聚合候选，因此重开程序后查询结果与冲突原因仍一致。
+
+### 17.5 事务、幂等与降级
+
+* **XML 语法坏**时在写库之前就拒绝（退出码 3）：不打开结果库、不改任何记录；
+  demo 与测试比对接入前后 `xliff.sqlite3` 的 SHA-256。
+* **DTD / 外部实体**在解析器层拒绝（`StartDoctypeDeclHandler` 抛错、
+  `ExternalEntityRefHandler` 返回 0、参数实体解析关闭），不会加载任何本地或网络资源。
+* XML 完好但部分单元不合约定：其余单元照常接入，逐单元记录结果，汇总非零退出。
+* 一次交付在**单个 SQLite 事务**内写入：交付、文件、单元、诊断、候选、候选来源与
+  受影响组的 `group_state` 一起提交。`--fail-point before_commit` 会在提交前抛错，
+  整份回滚；`runs` 中该次运行标记为 `interrupted`，语料与旧译文状态原样保留。
+* 相同审译文件 + 相同映射（按两者 SHA-256）再接入 → `duplicate`，**不写任何新行**，
+  返回原 `delivery_id`。
+* 结果库可重开；`units --unit-id` 恢复源/译文本、代码树与 XLIFF 位置。
+
+### 17.6 可重现样本与演示（`scenario/xliff/` + `xliffdemo.py`）
+
+`scenario/xliff/notices/` 是 4 个归档版本（来源 `xliffsim`）：X-4001 完整版与
+**同编号公众版**（第二、四段缺失）、X-4002 补充通告 **v1 与同一身份的 v2**
+（截止时间 8/15 → 9/15）。`reviews/` 与 `mappings/` 成对提供：
+
+| 文件 | 演示内容 |
+| --- | --- |
+| `01-full-enus.xlf` | 两段 zh-CN→en-US，多字节中文区间、保护 `g`、`x` 占位符、同语言第二 file |
+| `02-nested-en-gb.xlf` | `group` 嵌套（outer/inner）、兄弟代码换序、en-GB 与 en-US 并存 |
+| `03-mixed-rejections.xlf` | 一份文件里 4 个可运 + 8 个逐类拒收（偷换 id、`x`→`g`、移动层级、改 `equiv-text`、`ph`、缺 target、草稿 ×2、错绑同编号另一变体、绑定到 v1 却送 v2 文字） |
+| `04-duplicate-id.xlf` | 同一 file 内 u-dup 出现两次（第二次在末尾）：两次都失效；另一 file 中同 id 合法 |
+| `05-prefixed-alias.xlf` | 与 01 同一份译文，换命名空间前缀重新分包：不新增候选，只加交付来源 |
+| `06-conflict-enus.xlf` | 同一组的另一份审定译文 → 组转为待核对 |
+| `07-broken.xlf` / `08-dtd-entity.xlf` | 坏 XML / DTD+外部实体，均不改库 |
+| `09-wrong-version.xlf` | file 绑定到 v2，单元文字取自 v1 → 绑定不符，不自动换版本 |
+
+`python -m archive_pipeline.xliffdemo` 在 `work/xliffdemo/` 构建样本并逐步读回
+**实际数据库与来源关系**：可用行、代码树、`group_path`、逐单元拒收原因与 XLIFF 行号、
+重复 id 全部失效、坏 XML 前后库摘要一致、重传不增行、别名合并、先唯一后冲突、
+提交前强制退出状态不变；报告写入 `reports/xliff.md`。
+
+`tests/test_xliff.py`（20 项）不比较成功计数，而是直接查 `xliff.sqlite3`：候选与
+区间、源文本逐字等于 `body[start:end]`、`group_path`、兄弟换序接受、各类代码错误
+原因码、草稿不可查询、重复 id 全失效、错绑原因指向另一变体、坏 XML 库字节不变、
+DTD 拒绝、强制退出回滚与重跑、重开一致、重传幂等、别名合并来源、冲突组与两份来源、
+同语言/未知版本/缺 `equiv-text`/空白 target/重复 original 等负例、CLI 退出码。
+
+### 17.7 已知边界
+
+* 只做接入与整理，**不做人工裁决**：冲突组只标记待核对，不选"较好"的译文；
+* 仅支持 §17.1 的内联子集与 XLIFF 1.2；不处理 `header` 内的 `phase` 等元数据，
+  也不支持嵌套 `file`；
+* 映射区间必须由交回方按归档正文字符下标给出；作业不猜测区间，也不做对齐；
+* 不生成平行句对齐、分词或机器翻译；语料是逐单元可检索的译文候选；
+* 作业为单进程批量工具，不做并发写入；归档库与通知正文只读，不重写任何采集结果。

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xliff [<!ENTITY xxe SYSTEM "file:///etc/hostname">]>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="notices/X-4001-application.html" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-dtd">
+        <source>各有关单位：现将通告如下。</source>
+        <target state="final">&xxe;</target>
+      </trans-unit>
+        </body>
+  </file>
+</xliff>

@@ -1,0 +1,38 @@
+{
+  "format": "xliff-binding/1",
+  "description": "末尾重复单元 id 让同 file 内该 id 的所有出现失效",
+  "files": [
+    {
+      "original": "notices/X-4001-application.html",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1,
+      "units": {
+        "u-dup": {
+          "start": 31,
+          "end": 97
+        },
+        "u-clean": {
+          "start": 99,
+          "end": 159
+        }
+      }
+    },
+    {
+      "original": "notices/X-4001-application.html#dup",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1,
+      "units": {
+        "u-dup": {
+          "start": 161,
+          "end": 199
+        },
+        "u-clean2": {
+          "start": 201,
+          "end": 260
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,74 @@
+{
+  "format": "xliff-binding/1",
+  "description": "可运材料与被偷换/移动/改类型/错绑/草稿/版本不符的单元",
+  "files": [
+    {
+      "original": "notices/X-4001-application.html",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1
+    },
+    {
+      "original": "notices/X-4001-application.html#public",
+      "source_id": "xliffsim",
+      "archive_id": "arc_88e49bc08495d34458e9370634834de8",
+      "version_no": 1
+    },
+    {
+      "original": "notices/X-4002-supplement.html#v1",
+      "source_id": "xliffsim",
+      "archive_id": "arc_cc1aabf730dec3f8c59bf8f0c67dc8e6",
+      "version_no": 1
+    }
+  ],
+  "units": {
+    "u-ok": {
+      "start": 99,
+      "end": 159
+    },
+    "u-bad-id": {
+      "start": 31,
+      "end": 97
+    },
+    "u-bad-kind": {
+      "start": 31,
+      "end": 97
+    },
+    "u-bad-level": {
+      "start": 201,
+      "end": 260
+    },
+    "u-bad-equiv": {
+      "start": 201,
+      "end": 260
+    },
+    "u-draft": {
+      "start": 262,
+      "end": 283
+    },
+    "u-approved-draft": {
+      "start": 262,
+      "end": 283
+    },
+    "u-public-ok": {
+      "start": 31,
+      "end": 97
+    },
+    "u-public-misbound": {
+      "start": 99,
+      "end": 159
+    },
+    "u-version": {
+      "start": 39,
+      "end": 98
+    },
+    "u-window": {
+      "start": 37,
+      "end": 78
+    },
+    "u-prefix": {
+      "start": 37,
+      "end": 58
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "format": "xliff-binding/1",
+  "description": "file original 指向同一身份的 v2；单元切片取自 v1 → 绑定不符",
+  "files": [
+    {
+      "original": "notices/X-4002-supplement.html#v2",
+      "source_id": "xliffsim",
+      "archive_id": "arc_cc1aabf730dec3f8c59bf8f0c67dc8e6",
+      "version_no": 2
+    }
+  ],
+  "units": {
+    "u-wrong-version": {
+      "start": 37,
+      "end": 78
+    }
+  }
+}

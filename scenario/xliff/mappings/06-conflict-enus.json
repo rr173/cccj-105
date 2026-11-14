@@ -1,0 +1,18 @@
+{
+  "format": "xliff-binding/1",
+  "description": "同一组（X-4001 span [31,97)、zh-CN→en-US）的另一份审定译文",
+  "files": [
+    {
+      "original": "notices/X-4001-application.html#conflict",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1
+    }
+  ],
+  "units": {
+    "u-01-conflict": {
+      "start": 31,
+      "end": 97
+    }
+  }
+}

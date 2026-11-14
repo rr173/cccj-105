@@ -8,7 +8,10 @@ raw HTML into SQLite funding facts.  Two more independent jobs consume the
 same read-only archive: the schedule organizer (scheduleconfig, scheduledate,
 scheduleextract, schedule, schedcli, schedulesample, scheduledemo) and the
 offline eligibility pre-screen (eligvalue, eligclause, eligengine,
-eligibility, eligcli, eligsample, eligdemo, eligdemo_main).
+eligibility, eligcli, eligsample, eligdemo, eligdemo_main) and the XLIFF 1.2
+review-intake job (xliffparse, xliffintake, xliffcli, xliffsample, xliffdemo),
+which binds approved translations to exact archived character spans and keeps
+usable, draft and conflicting material apart.
 
 Storage management for the raw archive lives in worklock (the shared/exclusive
 work-directory lock used by collection and reclamation), reclaim (orphan

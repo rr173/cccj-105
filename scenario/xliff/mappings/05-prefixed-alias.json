@@ -1,0 +1,40 @@
+{
+  "format": "xliff-binding/1",
+  "description": "X-4001 完整版两段 → 美式英语；同语言第二 file；兄弟代码换序",
+  "files": [
+    {
+      "original": "notices/X-4001-application.html",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1,
+      "units": {
+        "u-01": {
+          "start": 31,
+          "end": 97
+        }
+      }
+    },
+    {
+      "original": "notices/X-4001-application.html#head",
+      "source_id": "xliffsim",
+      "archive_id": "arc_df6fcccf27a8993dc8ffc23c1e60c5d2",
+      "version_no": 1,
+      "units": {
+        "u-head": {
+          "start": 0,
+          "end": 29
+        }
+      }
+    }
+  ],
+  "units": {
+    "u-01": {
+      "start": 31,
+      "end": 97
+    },
+    "u-head": {
+      "start": 0,
+      "end": 29
+    }
+  }
+}

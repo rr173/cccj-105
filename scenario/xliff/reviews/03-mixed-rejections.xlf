@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="notices/X-4001-application.html" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-ok" approved="yes">
+        <source>二、申报单位须具备独立法人资格，并提供近三年的科研项目清单。清单中的项目代号须与申报书封面完全相同，不得自行简写或改写。</source>
+        <target state="final">(2) Applicants must be independently registered legal entities and must provide a list of research projects from the past three years. Codes in the list must match the cover of the application exactly; abbreviations or rewrites are not permitted.</target>
+      </trans-unit>
+      <trans-unit id="u-bad-id" approved="yes">
+        <source>一、申报时间为<g id="1">2026年6月1日至2026年7月15日</g>，逾期不再受理。项目代号为<x id="2" equiv-text="〔KX-2026-01〕"/>，请务必在申报表中保持一致。</source>
+        <target state="final">(1) Applications are accepted from <g id="1">June 1, 2026 to July 15, 2026</g>; late submissions are not accepted. The project code is <x id="9" equiv-text="〔KX-2026-01〕"/>, and must be kept identical in the application form.</target>
+      </trans-unit>
+      <trans-unit id="u-bad-kind" approved="yes">
+        <source>一、申报时间为<g id="1">2026年6月1日至2026年7月15日</g>，逾期不再受理。项目代号为<x id="2" equiv-text="〔KX-2026-01〕"/>，请务必在申报表中保持一致。</source>
+        <target state="final">(1) Applications are accepted from <x id="1" equiv-text="2026年6月1日至2026年7月15日"/>; late submissions are not accepted. The project code is <x id="2" equiv-text="〔KX-2026-01〕"/>, and must be kept identical in the application form.</target>
+      </trans-unit>
+      <trans-unit id="u-bad-level" approved="yes">
+        <source>四、材料提交地点与联系方式见<g id="g1"><x id="w1" equiv-text="〔受理窗口〕"/>一节；咨询电话为<x id="w2" equiv-text="〔010-8888-6666〕"/></g>，工作时间以对外公布的安排为准。</source>
+        <target state="final">(4) Submission location and contact: see <x id="w1" equiv-text="〔受理窗口〕"/><g id="g1"> section; the enquiry number is <x id="w2" equiv-text="〔010-8888-6666〕"/></g>; office hours follow the published schedule.</target>
+      </trans-unit>
+      <trans-unit id="u-bad-equiv" approved="yes">
+        <source>四、材料提交地点与联系方式见<g id="g1"><x id="w1" equiv-text="〔受理窗口〕"/>一节；咨询电话为<x id="w2" equiv-text="〔010-8888-6666〕"/></g>，工作时间以对外公布的安排为准。</source>
+        <target state="final">(4) Submission location and contact: see <g id="g1">section <x id="w1" equiv-text="〔受理窗口〕"/>; the enquiry number is <x id="w2" equiv-text="〔010-0000-0000〕"/></g>; office hours follow the published schedule.</target>
+      </trans-unit>
+      <trans-unit id="u-draft" approved="no">
+        <source>五、本通告未尽事宜，由科研管理处负责解释。</source>
+        <target state="final">Anything this notice does not cover is at the discretion of the Research Management Division.</target>
+      </trans-unit>
+      <trans-unit id="u-approved-draft" approved="yes">
+        <source>五、本通告未尽事宜，由科研管理处负责解释。</source>
+        <target state="translated">Anything this notice does not cover is at the discretion of the Research Management Division.</target>
+      </trans-unit>
+      <trans-unit id="u-unsupported" approved="yes">
+        <source>各有关单位：现将<g id="g9">2026年度科研合作项目申报事项</g>通告如下。</source>
+        <target state="final">To all relevant units: the <ph id="1" equiv-text="2026"/> arrangements are announced below.</target>
+      </trans-unit>
+      <trans-unit id="u-missing-target" approved="yes">
+        <source>各有关单位：现将通告如下。</source>
+      </trans-unit>
+        </body>
+  </file>
+  <file original="notices/X-4001-application.html#public" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-public-ok" approved="yes">
+        <source>一、申报时间为2026年6月1日至2026年7月15日，逾期不再受理。项目代号为〔KX-2026-01〕，请务必在申报表中保持一致。</source>
+        <target state="final">(1) Applications are accepted from June 1, 2026 to July 15, 2026; late submissions are not accepted. The project code is KX-2026-01, and must be kept identical in the application form.</target>
+      </trans-unit>
+      <trans-unit id="u-public-misbound" approved="yes">
+        <source>二、申报单位须具备独立法人资格，并提供近三年的科研项目清单。清单中的项目代号须与申报书封面完全相同，不得自行简写或改写。</source>
+        <target state="final">(2) Applicants must be independently registered legal entities and must provide a list of research projects from the past three years.</target>
+      </trans-unit>
+        </body>
+  </file>
+  <file original="notices/X-4002-supplement.html#v1" source-language="zh-CN" target-language="en-US" datatype="plaintext">
+        <body>
+      <trans-unit id="u-version" approved="yes">
+        <source>一、申报截止时间再次延长至2026年9月15日，项目代号〔KX-2026-01〕不变。已按前次通告准备的材料继续有效。</source>
+        <target state="final">1. The deadline is extended again to September 15, 2026; project code KX-2026-01 is unchanged. Materials prepared under the previous notice remain valid.</target>
+      </trans-unit>
+      <trans-unit id="u-window" approved="yes">
+        <source>一、申报截止时间延长至2026年8月15日，项目代号〔KX-2026-01〕不变。</source>
+        <target state="final">1. The application deadline is extended to August 15, 2026; project code KX-2026-01 is unchanged.</target>
+      </trans-unit>
+      <trans-unit id="u-prefix" approved="yes">
+        <source>一、申报截止时间延长至2026年8月15日</source>
+        <target state="final">1. The application deadline is extended to August 15, 2026</target>
+      </trans-unit>
+        </body>
+  </file>
+</xliff>
