@@ -1,0 +1,5 @@
+{"org_a": "A1", "org_b": "B1"}
+{"org_a": "B1", "org_b": "C"}
+{"org_a": "C", "org_b": "A2"}
+{"org_a": "P", "org_b": "A1"}
+{"org_a": "B1", "org_b": "A1"}

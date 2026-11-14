@@ -1,0 +1,55 @@
+{
+  "source_id": "relsim",
+  "versions": [
+    {
+      "notice_key": "N-5001",
+      "file": "N-5001-v1.html",
+      "archive_id": "arc_25a6d2f01627d245df9ba57bf2e5831e",
+      "version_no": 1,
+      "url": "http://relsim.local/notices/N-5001?view=full",
+      "title": "关于联合科研平台开放申请的通告",
+      "body": "各研究机构：联合科研平台自2026年3月起开放申请。\n\n一、首批开放两个实验方向，申请以机构为单位提交。\n\n二、合作机构名单由科研管理处另行确认。",
+      "note": "完整版 v1：首批开放两个方向"
+    },
+    {
+      "notice_key": "N-5001",
+      "file": "N-5001-v2.html",
+      "archive_id": "arc_25a6d2f01627d245df9ba57bf2e5831e",
+      "version_no": 2,
+      "url": "http://relsim.local/notices/N-5001?view=full",
+      "title": "关于联合科研平台开放申请的通告（修订）",
+      "body": "各研究机构：联合科研平台自2026年3月起开放申请，现作如下修订。\n\n一、首批开放三个实验方向，申请以机构为单位提交。\n\n二、合作机构名单由科研管理处另行确认；新增方向自公布之日起接受申请。",
+      "note": "完整版 v2（同一身份）：首批开放三个方向"
+    },
+    {
+      "notice_key": "N-5001",
+      "file": "N-5001-public.html",
+      "archive_id": "arc_6af784ed31085359fffe393e61bd4579",
+      "version_no": 1,
+      "url": "http://relsim.local/notices/N-5001?edition=public",
+      "title": "关于联合科研平台开放申请的公众通告",
+      "body": "联合科研平台自2026年3月起开放申请，欢迎公众关注。\n\n合作机构名单由科研管理处另行确认。",
+      "note": "同编号另一变体，正文不同"
+    },
+    {
+      "notice_key": "N-5002",
+      "file": "N-5002.html",
+      "archive_id": "arc_ed728d5bb344f8aa476bef08729add98",
+      "version_no": 1,
+      "url": "http://relsim.local/notices/N-5002",
+      "title": "关于开展联合数据评估的通知",
+      "body": "各有关单位：现组织联合数据评估，评估范围为共享数据目录。\n\n评估工作由具备法人资格的机构承担，不接受个人申报。",
+      "note": "联合数据评估通知"
+    },
+    {
+      "notice_key": "N-5003",
+      "file": "N-5003.html",
+      "archive_id": "arc_309df132b62995e8a86c08f47f2c3228",
+      "version_no": 1,
+      "url": "http://relsim.local/notices/N-5003",
+      "title": "关于设备维护窗口的通告",
+      "body": "各用户：设备将于本月第二个周末维护，期间暂停服务。",
+      "note": "设备维护通知，无机构提及"
+    }
+  ]
+}

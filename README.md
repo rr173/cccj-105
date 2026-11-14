@@ -7,8 +7,9 @@
 # 完整演示：启动两站、跑完整场景、生成 reports/
 python -m archive_pipeline.demo
 
-# 测试（255 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格
-#       + 30 日程整理 + 42 资格预审 + 63 原始留档空间回收 + 20 XLIFF 审译接入）
+# 测试（305 项：21 单元 + 34 真实 HTTP 集成/身份回归 + 7 旧库修复 + 38 资助表格
+#       + 30 日程整理 + 42 资格预审 + 63 原始留档空间回收 + 20 XLIFF 审译接入
+#       + 50 关系规则作业）
 python -m unittest discover -s tests -v
 
 # 审译文件接入（见 §17）：只读归档正文，SQLite 整理双语语料
@@ -339,9 +340,17 @@ archive_pipeline/
   xliffcli.py  # intake/usable/groups/candidates/issues/units/deliveries/runs
   xliffsample.py # XLIFF 作业可重现归档样本构建器
   xliffdemo.py # 审译接入端到端演示与报告
+  relrule.py   # 关系规则：JSON 声明、类型/安全校验、依赖图、分层与递归分量计划
+  relfacts.py  # 严格 JSONL 事实加载（集合语义、逐行定位）与 notice 单快照读取
+  releva.py    # 磁盘 SQLite 事实/中间关系 + 半朴素（增量）分层求值与轮次统计
+  relationjob.py # 检查/执行/分页读回；单事务发布，失败整次回滚
+  relcli.py    # check/plan/run/show/runs/summary 命令
+  relsample.py # 机构关联演练的可重现归档样本构建器
+  reloracle.py # 独立穷举求值器（仅测试/演示交叉核对，不参与生产）
+  reldemo.py   # 机构关联演练端到端演示与报告
 config/sources.json   config/funding_tables.json   config/schedule_vocab.json
 scenario/   scenario/funding/   scenario/schedule/   scenario/eligibility/
-scenario/xliff/   work/   reports/
+scenario/xliff/   scenario/relations/   work/   reports/
 tests/   reports/   work/
 ```
 
@@ -1052,3 +1061,143 @@ DTD 拒绝、强制退出回滚与重跑、重开一致、重传幂等、别名�
 * 映射区间必须由交回方按归档正文字符下标给出；作业不猜测区间，也不做对齐；
 * 不生成平行句对齐、分词或机器翻译；语料是逐单元可检索的译文候选；
 * 作业为单进程批量工具，不做并发写入；归档库与通知正文只读，不重写任何采集结果。
+
+## 18. 离线关系规则作业（`relrule.py` / `relationjob.py` / `relcli.py`）
+
+机构隶属、合作关系与排除名单由不同同事维护。本作业把“公告的精确版本”与这些
+人工关系表按**声明式规则**连接，递归推导出机构祖先、合作可达以及排除后的公告
+关联集合，写入独立的 `work/relation.sqlite3` 供后续数据管道读取。它是数据转换
+程序：不做自然语言问答，也不对申请人作资格判断；规则只处理数据，**不接受用户
+Python 或任意 SQL 文本**。
+
+```bash
+python -m archive_pipeline.relcli check --rules scenario/relations/rules/org.json --plan
+python -m archive_pipeline.relcli --workdir work/reldemo run \
+    --rules scenario/relations/rules/org.json
+python -m archive_pipeline.relcli --workdir work/reldemo show \
+    --relation notice_visible --page 0 --page-size 20
+python -m archive_pipeline.relcli --workdir work/reldemo summary --run 1
+python -m archive_pipeline.reldemo          # 构建演练现场并写 reports/relations.md
+```
+
+退出码：`0` 成功；`2` 用法/运行错误；`3` **规则文档被拒绝**——校验在读取任何
+事实之前完成，结果库不变；`4` 坏事实、预算超限或中途退出——整次事务回滚，既有
+成功结果不受影响。
+
+### 18.1 规则文档（`relation-rules/1`）
+
+```json
+{
+  "format": "relation-rules/1", "budget": 5000,
+  "relations": {
+    "parent_org": {"columns": [["child", "string"], ["parent", "string"]],
+                   "source": {"kind": "jsonl", "path": "../facts/parent_org.jsonl"}},
+    "ancestor":   {"columns": [["org_id", "string"], ["ancestor", "string"]]}
+  },
+  "rules": [
+    {"head": {"relation": "ancestor", "args": ["?x", "?y"]},
+     "body": [{"relation": "parent_org", "args": ["?x", "?y"]}]},
+    {"head": {"relation": "ancestor", "args": ["?x", "?y"]},
+     "body": [{"relation": "ancestor", "args": ["?x", "?z"]},
+              {"relation": "ancestor", "args": ["?z", "?y"]}]}
+  ]
+}
+```
+
+* **类型只有 `string` 与有符号 64 位 `int`。** 布尔不是整数，不能写进 `int`
+  列或当作 `{"const": true}`；字符串按原值比较，不折叠大小写、不裁剪空白。
+* **参数区分变量与常量，不靠字符串长相猜。** `"?x"` 是变量；任何不以 `?` 开头
+  的裸字符串一律拒绝；常量必须写成 `{"const": "..."}` 或 `{"const": 123}`，
+  并与列声明类型一致。
+* **保留关系 `notice`** 不在此声明，固定为
+  `source_id:string, archive_id:string, version_no:int, title:string, body:string`，
+  **只读**取自归档 SQLite 库，包含各个历史版本。身份是
+  `(source_id, archive_id, version_no)`：公告编号不参与身份，也不从正文猜机构。
+* 基础关系（带 `source`）从本地 JSONL 读；同一元组出现多次只算一条。`null`、
+  缺列、多列、类型不符（含布尔冒充整数与超出 int64）逐行拒绝，错误带
+  `文件:行:列`；末尾坏事实同样整次回滚。
+* **规则体**是正关系、否定关系与 `eq`/`neq` 条件的合取；多条规则的结果取并集。
+  支持同一关系多次出现、自连接、同一变量跨列重复、常量筛选与投影、多个基础
+  关系的连接。
+
+### 18.2 校验（在读取事实之前）与分层否定
+
+`check` / `run` 首先完成全部结构校验并给出 JSON 位置（`location`，例如
+`rules[2].body[1].args[0]`）：
+
+* 未声明关系、元数不符、基础关系作为规则头、未定义的推导关系；
+* 裸字符串、常量类型不符、`eq`/`neq` 两侧类型不同、int 越界、布尔常量；
+* **不安全变量**：头部、否定项与比较条件里的变量都必须出现在该规则的某个
+  正关系中——否定或相等不能创造变量取值范围；
+* 同名变量跨列出现必须类型一致；
+* **否定闭环**：先建带正/负标记的关系依赖图（边方向为 *规则头 → 体原子*），
+  再做强连通分量；任何分量内部出现负边即拒绝。该检查只看规则结构，因此
+  **当前输入为空也照样拒绝**。
+
+`--plan` 输出可读计划：每个强连通分量（标出递归/互递归）、每层包含的关系、
+以及逐条 `head -> target` / `head -not-> target` 依赖边。同一规则体内同一递归
+关系出现两次时，依赖边会出现两次，求值时两个位置各生成一个增量变体。
+
+### 18.3 求值：半朴素增量 + 磁盘中间集合
+
+事实与所有中间关系都在结果库的附表中（`facts` 按 `(run_id, relation, c0..c7)`
+主键，`INSERT OR IGNORE`），每层的 `rel_<name>`、`rel_<name>_delta` 为 SQLite
+临时表（`PRAGMA temp_store = FILE`）。求值按分层顺序：
+
+1. **种子轮**（每分量第 0 轮）：只触发本分量内不含正递归原子的基本规则，其余
+   正原子读已完成的全量关系；
+2. **增量轮**：对每条规则，按“哪一个递归体原子读增量”生成变体；该位置读上一轮
+   `_delta`，其余位置读全量……但全量侧是**按 rowid 水位冻结的视图**
+   （`rowid <= 轮初水位`），本轮新产生的元组对新全量不可见，只进入下一轮增量。
+   若同一规则体内出现两个递归关系（或同一递归关系两次），两个位置各生成一个
+   变体，**不会只固定一个别名使用增量**；
+3. 某轮全局新增为 0 即收敛；已知集合从不作为增量重放，重复元组由主键忽略，
+   正环与互递归因此不会无限追加同一元组；
+4. 负原子是 `NOT EXISTS` 全元组探针，只使用已绑定的变量；被否定的关系一定在
+   更低层或基础层，**低层递归全部收敛后**才计算上层。只按规则文本顺序执行一次
+   不是实现。
+
+**审计**：`round_stats` 每关系每轮一行，记录 `variants`（执行的增量变体数）、
+`delta_rows`（该轮新增唯一元组）与 `join_plan_json`（每个体原子实际读
+`delta`/`full`/`not_exists`）。`execution_stats` 汇总每分量的轮数与增量/全量
+连接次数——用来核对确实走了增量路径，而不是把全量重算循环换个名字。
+
+### 18.4 原子发布、单时点读取与预算
+
+* 规则摘要（canonical JSON SHA-256）、规则文件 SHA-256、各基础输入摘要
+  （SHA-256/字节/行数/记录数/去重后元组数）、notice 来源摘要、关系计数、轮次与
+  执行统计，与关系行在**同一个 SQLite 事务**中提交；只有提交后才存在成功运行。
+* `notice` 读取先把归档库用 SQLite backup 复制到临时快照（源文件只读、不写），
+  再从该快照读出全部版本；同次运行不会混入两个时点。源文件前后 SHA-256 一并记录。
+* **总推导元组预算**（规则 `budget` 或 `--budget`）对推导新增元组生效；一旦超过
+  即明确失败，绝不以截断结果冒充完成。
+* 坏事实、预算超限、`--fail-point`、真实 `os._exit` 或任意异常都会回滚整个
+  事务：不会留下“半份新结果”，已有成功运行及其行指纹保持不变；重开后
+  `runs` 列表里也只有已提交的运行。
+
+### 18.5 读回与演练
+
+`show --relation NAME [--page N --page-size K | --offset N --limit K]` 分页读取
+任意关系（含保留的 `notice`），稳定排序、返回列名与类型、总数与来源说明。
+`summary` 返回运行摘要、关系计数、每轮增量、执行统计与输入摘要。
+
+可重现演练在 `scenario/relations/`：5 个归档版本（N-5001 完整 v1/v2 是同一
+`archive_id` 的两个版本；同编号公众版是**另一**身份；N-5002 被机构提及；
+N-5003 无提及）与 `facts/` 中的机构层级、合作、排除、公告黑名单与人工
+mentions。`scenario/relations/rules/org.json` 声明祖先、合作可达、互递归（奇偶步）、
+重复变量自连接、排除后关联与祖先链排除数组推导。`python -m archive_pipeline.reldemo` 用**手写预期
+元组**逐集合比对，同一现场与有限随机资料再用独立穷举求值器
+（`reloracle.py`）交叉核对，打乱事实与规则顺序后再比对一次；随后演示各类定位
+拒绝、超预算与真实中途退出、重开读回、以及 120 节点有向链的每轮增量、磁盘表
+大小与内存峰值。
+`tests/test_relations.py`（50 项）直接查结果库，不比较成功计数。
+
+### 18.6 已知边界
+
+* 允许全作业重新计算；不提供事实删除后的在线维护、聚合、函数生成新值与
+  无限数值递归；
+* 规则由人工编录为 JSON，程序不从自然语言推断关系；一次运行规则集合固定；
+* 关系最多 8 列（存储格式限制）；字符串比较是精确比较，不提供排序或模式匹配；
+* 规则与结果是全量重算：每次运行重新加载全部基础事实并发布一份完整结果，旧运行
+  按 `run_id` 保留，不提供增量更新或事实删除维护；
+* 作业为单进程批量工具；归档库只读，结果库由本作业独占写入。

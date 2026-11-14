@@ -1,0 +1,16 @@
+{
+  "digest_algorithm": "sha256",
+  "digest": "58e4ec956e9ca28114ac2a391c2aaba04027f5a0df713c2e3b821038cbb81736",
+  "bytes": 563,
+  "source_id": "relsim",
+  "url": "http://relsim.local/notices/N-5001?edition=public",
+  "final_url": "http://relsim.local/notices/N-5001?edition=public",
+  "status": 200,
+  "content_type": "text/html; charset=utf-8",
+  "etag": "",
+  "last_modified": "",
+  "scan_id": 1,
+  "kind": "detail",
+  "fetched_at": "2026-06-02T00:00:00+00:00",
+  "storage": "identity"
+}

@@ -1,0 +1,553 @@
+{
+  "format": "relation-rules/1",
+  "description": "机构关系演练：祖先机构、合作可达、排除后公告关联（含互递归与否定分层）",
+  "budget": 5000,
+  "relations": {
+    "org": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ],
+        [
+          "name",
+          "string"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/org.jsonl"
+      }
+    },
+    "parent_org": {
+      "columns": [
+        [
+          "child",
+          "string"
+        ],
+        [
+          "parent",
+          "string"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/parent_org.jsonl"
+      }
+    },
+    "coop": {
+      "columns": [
+        [
+          "org_a",
+          "string"
+        ],
+        [
+          "org_b",
+          "string"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/coop.jsonl"
+      }
+    },
+    "excluded": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/excluded.jsonl"
+      }
+    },
+    "blocked_notice": {
+      "columns": [
+        [
+          "archive_id",
+          "string"
+        ],
+        [
+          "version_no",
+          "int"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/blocked_notice.jsonl"
+      }
+    },
+    "mention": {
+      "columns": [
+        [
+          "archive_id",
+          "string"
+        ],
+        [
+          "version_no",
+          "int"
+        ],
+        [
+          "org_id",
+          "string"
+        ]
+      ],
+      "source": {
+        "kind": "jsonl",
+        "path": "../facts/mention.jsonl"
+      }
+    },
+    "ancestor": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ],
+        [
+          "ancestor",
+          "string"
+        ]
+      ]
+    },
+    "coop_reach": {
+      "columns": [
+        [
+          "org_a",
+          "string"
+        ],
+        [
+          "org_b",
+          "string"
+        ]
+      ]
+    },
+    "reach_even": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "reach_odd": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "notice_org": {
+      "columns": [
+        [
+          "source_id",
+          "string"
+        ],
+        [
+          "archive_id",
+          "string"
+        ],
+        [
+          "version_no",
+          "int"
+        ],
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "notice_allowed": {
+      "columns": [
+        [
+          "source_id",
+          "string"
+        ],
+        [
+          "archive_id",
+          "string"
+        ],
+        [
+          "version_no",
+          "int"
+        ],
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "notice_visible": {
+      "columns": [
+        [
+          "source_id",
+          "string"
+        ],
+        [
+          "archive_id",
+          "string"
+        ],
+        [
+          "version_no",
+          "int"
+        ],
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "ancestor_excluded": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    },
+    "org_self": {
+      "columns": [
+        [
+          "org_id",
+          "string"
+        ]
+      ]
+    }
+  },
+  "rules": [
+    {
+      "description": "祖先机构：直接上级",
+      "head": {
+        "relation": "ancestor",
+        "args": [
+          "?x",
+          "?y"
+        ]
+      },
+      "body": [
+        {
+          "relation": "parent_org",
+          "args": [
+            "?x",
+            "?y"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "祖先机构：正向自递归（同一递归关系在正文中出现两次）",
+      "head": {
+        "relation": "ancestor",
+        "args": [
+          "?x",
+          "?y"
+        ]
+      },
+      "body": [
+        {
+          "relation": "ancestor",
+          "args": [
+            "?x",
+            "?z"
+          ]
+        },
+        {
+          "relation": "ancestor",
+          "args": [
+            "?z",
+            "?y"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "合作可达：直接合作",
+      "head": {
+        "relation": "coop_reach",
+        "args": [
+          "?a",
+          "?b"
+        ]
+      },
+      "body": [
+        {
+          "relation": "coop",
+          "args": [
+            "?a",
+            "?b"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "合作可达：传递闭包（同一递归关系在正文出现两次，另一处以两条基本边处理对称）",
+      "head": {
+        "relation": "coop_reach",
+        "args": [
+          "?a",
+          "?b"
+        ]
+      },
+      "body": [
+        {
+          "relation": "coop_reach",
+          "args": [
+            "?a",
+            "?c"
+          ]
+        },
+        {
+          "relation": "coop_reach",
+          "args": [
+            "?c",
+            "?b"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "合作可达的反向边（合作按无向关系处理）",
+      "head": {
+        "relation": "coop_reach",
+        "args": [
+          "?b",
+          "?a"
+        ]
+      },
+      "body": [
+        {
+          "relation": "coop",
+          "args": [
+            "?a",
+            "?b"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "互递归底层：从 A1 出发的偶数步",
+      "head": {
+        "relation": "reach_even",
+        "args": [
+          {
+            "const": "A1"
+          }
+        ]
+      },
+      "body": [
+        {
+          "relation": "org",
+          "args": [
+            {
+              "const": "A1"
+            },
+            "?name"
+          ]
+        },
+        {
+          "eq": [
+            "?name",
+            {
+              "const": "甲一所"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "description": "互递归：奇数步经合作边到达",
+      "head": {
+        "relation": "reach_odd",
+        "args": [
+          "?x"
+        ]
+      },
+      "body": [
+        {
+          "relation": "reach_even",
+          "args": [
+            "?y"
+          ]
+        },
+        {
+          "relation": "coop",
+          "args": [
+            "?y",
+            "?x"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "互递归：偶数步经合作反向边到达",
+      "head": {
+        "relation": "reach_even",
+        "args": [
+          "?x"
+        ]
+      },
+      "body": [
+        {
+          "relation": "reach_odd",
+          "args": [
+            "?y"
+          ]
+        },
+        {
+          "relation": "coop",
+          "args": [
+            "?x",
+            "?y"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "重复变量自连接：同一变量同时出现在 parent_org 的两列，筛出自己是自己上级的机构",
+      "head": {
+        "relation": "org_self",
+        "args": [
+          "?x"
+        ]
+      },
+      "body": [
+        {
+          "relation": "parent_org",
+          "args": [
+            "?x",
+            "?x"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "公告精确版本 -> 提及机构（notice.archive_id 与版本一起匹配）",
+      "head": {
+        "relation": "notice_org",
+        "args": [
+          "?source_id",
+          "?archive_id",
+          "?version_no",
+          "?org_id"
+        ]
+      },
+      "body": [
+        {
+          "relation": "notice",
+          "args": [
+            "?source_id",
+            "?archive_id",
+            "?version_no",
+            "?title",
+            "?body"
+          ]
+        },
+        {
+          "relation": "mention",
+          "args": [
+            "?archive_id",
+            "?version_no",
+            "?org_id"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "排除名单之外、且未被公告级黑名单排除的关联",
+      "head": {
+        "relation": "notice_allowed",
+        "args": [
+          "?source_id",
+          "?archive_id",
+          "?version_no",
+          "?org_id"
+        ]
+      },
+      "body": [
+        {
+          "relation": "notice_org",
+          "args": [
+            "?source_id",
+            "?archive_id",
+            "?version_no",
+            "?org_id"
+          ]
+        },
+        {
+          "not": {
+            "relation": "excluded",
+            "args": [
+              "?org_id"
+            ]
+          }
+        },
+        {
+          "not": {
+            "relation": "blocked_notice",
+            "args": [
+              "?archive_id",
+              "?version_no"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "description": "把已排除机构及其全部下级标记为不可见（先递归求祖先，再按排除名单筛选）",
+      "head": {
+        "relation": "ancestor_excluded",
+        "args": [
+          "?org_id"
+        ]
+      },
+      "body": [
+        {
+          "relation": "ancestor",
+          "args": [
+            "?org_id",
+            "?bad"
+          ]
+        },
+        {
+          "relation": "excluded",
+          "args": [
+            "?bad"
+          ]
+        }
+      ]
+    },
+    {
+      "description": "公告可见关联：机构本身未排除，且其祖先链上没有已排除机构",
+      "head": {
+        "relation": "notice_visible",
+        "args": [
+          "?source_id",
+          "?archive_id",
+          "?version_no",
+          "?org_id"
+        ]
+      },
+      "body": [
+        {
+          "relation": "notice_allowed",
+          "args": [
+            "?source_id",
+            "?archive_id",
+            "?version_no",
+            "?org_id"
+          ]
+        },
+        {
+          "not": {
+            "relation": "ancestor_excluded",
+            "args": [
+              "?org_id"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
